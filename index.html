@@ -1,0 +1,2072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="USC Marshall School of Business BUAD 307 Research Participation Program - Spring 2026" />
+  <meta name="theme-color" content="#990000" />
+  <title>BUAD 307 Research Participation | USC Marshall</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{cardinal:'#990000',gold:'#FFCC00'},fontFamily:{'display':['"Source Serif 4"','Georgia','serif'],'body':['"Source Sans 3"','system-ui','sans-serif']}}}}</script>
+  <style>
+    :root {
+      --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+      --header-h: 60px;
+      --banner-h: 36px;
+      --nav-top: calc(var(--header-h) + var(--banner-h));
+      --mobile-nav-h: 72px;
+    }
+    * { font-family: 'Source Sans 3', system-ui, sans-serif; box-sizing: border-box }
+    html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased }
+    body { margin: 0; overflow-x: hidden; background: #F9F9F6 }
+    h1, h2, h3, .font-display { font-family: 'Source Serif 4', Georgia, serif !important }
+
+    /* Subtle texture */
+    .grain::after {
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9999; opacity: 0.015;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* Animations */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px) } to { opacity: 1; transform: translateY(0) } }
+    @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(-100%) } to { opacity: 1; transform: translateX(0) } }
+    @keyframes slideRight { from { opacity: 0; transform: translateX(-8px) } to { opacity: 1; transform: translateX(0) } }
+    @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(153,0,0,0.2) } 50% { box-shadow: 0 0 0 10px rgba(153,0,0,0) } }
+    @keyframes breathe { 0%,100% { opacity: 0.4 } 50% { opacity: 1 } }
+    @keyframes shimmer { 0% { background-position: -200% 0 } 100% { background-position: 200% 0 } }
+
+    .animate-up { animation: fadeUp 0.5s var(--ease-spring) both }
+    .animate-in { animation: fadeIn 0.4s var(--ease-out) both }
+    .animate-right { animation: slideRight 0.4s var(--ease-spring) both }
+
+    .stagger > *:nth-child(1) { animation-delay: 0.04s }
+    .stagger > *:nth-child(2) { animation-delay: 0.08s }
+    .stagger > *:nth-child(3) { animation-delay: 0.12s }
+    .stagger > *:nth-child(4) { animation-delay: 0.16s }
+    .stagger > *:nth-child(5) { animation-delay: 0.2s }
+    .stagger > *:nth-child(6) { animation-delay: 0.24s }
+
+    /* Cards & Surfaces */
+    .card { background: #fff; border: 1px solid #DDDDD9; border-radius: 16px; transition: transform 0.3s var(--ease-spring), box-shadow 0.3s }
+    .card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.06) }
+    .card-interactive { cursor: pointer }
+    .card-interactive:hover { transform: translateY(-2px) }
+
+    /* Frosted */
+    .frosted { backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%) }
+
+    /* Scrollbar */
+    .no-scrollbar::-webkit-scrollbar { display: none }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none }
+
+    /* Focus */
+    *:focus { outline: none }
+    *:focus-visible { outline: 2px solid #990000; outline-offset: 2px; border-radius: 8px }
+
+    /* Active press */
+    .press { transition: transform 0.1s, opacity 0.1s }
+    .press:active { transform: scale(0.97); opacity: 0.9 }
+
+    /* Progress bar */
+    .scroll-bar { position: fixed; top: 0; left: 0; height: 3px; z-index: 100; background: linear-gradient(90deg, #990000, #CC3333, #990000); background-size: 200%; animation: shimmer 3s linear infinite }
+
+    /* Mobile bottom nav safe area */
+    @supports(padding: env(safe-area-inset-bottom)) {
+      .safe-bottom { padding-bottom: env(safe-area-inset-bottom) }
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important }
+    }
+
+    /* Touch devices */
+    @media (hover: none) and (pointer: coarse) {
+      button, a { -webkit-tap-highlight-color: transparent }
+      .card:hover { box-shadow: none; transform: none }
+      .card-interactive:hover { transform: none }
+    }
+
+    /* Print */
+    @media print {
+      .print-hide { display: none !important }
+      body { background: #fff !important }
+      main { max-width: 100% !important; padding: 0 !important }
+      .card { box-shadow: none !important; border: 1px solid #ddd !important }
+    }
+
+    /* Skip link */
+    .skip-link { position: absolute; top: -60px; left: 0; background: #990000; color: #fff; padding: 12px 20px; z-index: 9999; font-weight: 600; border-radius: 0 0 8px 0; transition: top 0.2s }
+    .skip-link:focus { top: 0 }
+
+    /* Keyboard badge */
+    .kbd { display: inline-flex; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.5); line-height: 1 }
+  </style>
+</head>
+<body class="grain">
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script type="text/babel">
+    const { useState, useRef, useEffect, useMemo, useCallback } = React;
+
+    /* ═══ Icon ═══ */
+    const Icon = ({ name, size = 20, style = {}, ...props }) => {
+      const ref = useRef(null);
+      useEffect(() => {
+        if (ref.current && lucide.icons[name]) {
+          ref.current.innerHTML = '';
+          const icon = lucide.createElement(lucide.icons[name]);
+          icon.setAttribute('width', size); icon.setAttribute('height', size); icon.setAttribute('aria-hidden', 'true');
+          icon.style.strokeWidth = '1.75';
+          Object.entries(style).forEach(([k, v]) => icon.style[k] = v);
+          ref.current.appendChild(icon);
+        }
+      }, [name, size, JSON.stringify(style)]);
+      return <span ref={ref} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', ...style }} {...props} />;
+    };
+
+    /* ═══ Theme ═══ */
+    const T = {
+      cardinal: '#990000', cardinalDark: '#7A0000', cardinalDeep: '#5C0000',
+      cardinalLight: '#FFF5F5', cardinalGhost: '#99000006',
+      gold: '#C8960C', goldDark: '#A67A00', goldBg: '#FDF8EC', goldBorder: '#EDD9A3', goldText: '#6B4F00',
+      ink: '#0A0A0A', inkSoft: '#333', inkMuted: '#555', inkLight: '#777', inkFaint: '#BFBFBF',
+      bg: '#F9F9F6', white: '#FFFFFF', warm: '#F2F2EE', stone: '#E8E8E4',
+      border: '#DDDDD9', borderLight: '#E8E8E4',
+      green: '#047857', greenBg: '#ECFDF5', greenBorder: '#A7F3D0',
+      amber: '#B45309', amberBg: '#FFFBEB', amberBorder: '#FDE68A',
+      red: '#B91C1C', redBg: '#FEF2F2', redBorder: '#FECACA',
+      blue: '#0369A1', blueBg: '#F0F9FF', blueBorder: '#BAE6FD',
+    };
+
+    const COURSE = {
+      code: 'BUAD 307', name: 'Marketing Fundamentals',
+      sonaUrl: 'https://marshall-mkt.sona-systems.com',
+      handoutUrl: 'https://bit.ly/buad307-spring2026',
+      email: 'mkt.sona@marshall.usc.edu',
+      credits: '4.0',
+      slack: '#buad307-research-participation',
+      phone: '213.821.9752'
+    };
+
+    /* ═══════════════════════════════════════════════════
+       SCHEDULE DATA — UPDATE THIS BLOCK WHEN STUDIES CHANGE
+       Last updated: February 16, 2026
+       ═══════════════════════════════════════════════════ */
+    const SCHEDULE = {
+      lastUpdated: 'February 16, 2026',
+      // Status options: 'closed', 'available', 'upcoming'
+      // When a study opens:  change status to 'available'
+      // When a study closes: change status to 'closed'
+      items: [
+        { week: 'Feb 3',  item: 'Online Study 1',  type: 'online', status: 'closed' },
+        { week: 'Feb 10', item: 'Online Study 2',  type: 'online', status: 'available' },
+        { week: 'Feb 17', item: 'Online Study 3',  type: 'online', status: 'upcoming' },
+        { week: 'Feb 23', item: 'Lab Session 1',   type: 'lab',    status: 'upcoming' },
+        { week: 'Feb 24', item: 'Online Study 4',  type: 'online', status: 'upcoming' },
+        { week: 'Mar 2',  item: 'Lab Session 2',   type: 'lab',    status: 'upcoming' },
+        { week: 'Mar 3',  item: 'Online Study 5',  type: 'online', status: 'upcoming' },
+        { week: 'Mar 10', item: 'Online Study 6',  type: 'online', status: 'upcoming' },
+        { divider: 'Spring Break — Mar 16–27 — No Studies' },
+        { week: 'Mar 30', item: 'Online Study 7',  type: 'online', status: 'upcoming' },
+        { week: 'Apr 6',  item: 'Online Study 8',  type: 'online', status: 'upcoming' },
+        { week: 'Apr 6',  item: 'Lab Session 3',   type: 'lab',    status: 'upcoming' },
+        { week: 'Apr 13', item: 'Online Study 9',  type: 'online', status: 'upcoming' },
+        { week: 'Apr 13', item: 'Lab Session 4',   type: 'lab',    status: 'upcoming' },
+        { week: 'Apr 20', item: 'Online Study 10', type: 'online', status: 'upcoming' },
+        { week: 'Apr 27', item: 'Online Study 11', type: 'online', status: 'upcoming' },
+        { week: 'Apr 27', item: 'Lab Session 5',   type: 'lab',    status: 'upcoming' },
+        { deadline: 'May 1 — Final Deadline — All 4.0 credits due' },
+      ],
+    };
+    // Derived data — these update automatically
+    const SCHED_STUDIES = SCHEDULE.items.filter(s => s.type);
+    const SCHED_NEXT_ONLINE = SCHED_STUDIES.find(s => s.type === 'online' && s.status !== 'closed');
+    const SCHED_NEXT_LAB = SCHED_STUDIES.find(s => s.type === 'lab' && s.status !== 'closed');
+
+    /* ═══ Shared Components ═══ */
+
+    const Card = ({ children, className = '', accent, pad = true }) => (
+      <div className={'card ' + className}
+        style={{ borderLeftWidth: accent ? 3 : 1, borderLeftColor: accent || T.border }}>
+        <div className={pad ? 'p-5 sm:p-7' : ''}>{children}</div>
+      </div>
+    );
+
+    const Section = ({ title, subtitle, icon, children, action }) => (
+      <div className="animate-up">
+        <div className="flex items-start justify-between mb-5 gap-4">
+          <div className="flex items-start gap-3">
+            {icon && <div className="w-9 h-9 rounded-xl flex items-center justify-center mt-0.5 flex-shrink-0"
+              style={{ backgroundColor: T.cardinalLight }}>
+              <Icon name={icon} size={17} style={{ color: T.cardinal }} />
+            </div>}
+            <div>
+              <h2 className="font-display text-xl sm:text-2xl" style={{ fontWeight: 500, letterSpacing: '-0.01em', color: T.ink }}>{title}</h2>
+              {subtitle && <p className="text-sm mt-0.5" style={{ color: T.inkMuted }}>{subtitle}</p>}
+            </div>
+          </div>
+          {action}
+        </div>
+        {children}
+      </div>
+    );
+
+    const Accordion = ({ title, icon, badge, children, defaultOpen = false, accent }) => {
+      const [open, setOpen] = useState(defaultOpen);
+      const c = accent || T.cardinal;
+      return (
+        <div className="card overflow-hidden" style={{ borderColor: open ? c + '30' : T.border }}>
+          <button onClick={() => setOpen(!open)}
+            className="w-full px-5 py-4 flex items-center justify-between"
+            style={{ backgroundColor: open ? c + '05' : 'transparent', transition: 'background 0.2s' }}
+            aria-expanded={open}>
+            <div className="flex items-center gap-3 min-w-0">
+              {icon && <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: open ? c + '12' : T.warm, transition: 'all 0.25s' }}>
+                <Icon name={icon} size={15} style={{ color: open ? c : T.inkMuted }} />
+              </div>}
+              <span className="font-semibold text-sm truncate" style={{ color: open ? c : T.ink }}>{title}</span>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+              {badge && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: badge.bg, color: badge.color }}>{badge.text}</span>}
+              <div className="w-6 h-6 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: T.warm, transition: 'transform 0.3s var(--ease-spring)', transform: open ? 'rotate(180deg)' : 'none' }}>
+                <Icon name="ChevronDown" size={13} style={{ color: T.inkMuted }} />
+              </div>
+            </div>
+          </button>
+          {open && <div className="px-5 pb-5 animate-in" style={{ borderTop: '1px solid ' + T.borderLight }}><div className="pt-4">{children}</div></div>}
+        </div>
+      );
+    };
+
+    const Alert = ({ type = 'info', icon, title, children, compact }) => {
+      const styles = {
+        info: { bg: T.blueBg, border: T.blueBorder, color: T.blue },
+        warning: { bg: T.amberBg, border: T.amberBorder, color: '#78350F' },
+        success: { bg: T.greenBg, border: T.greenBorder, color: T.green },
+        error: { bg: T.redBg, border: T.redBorder, color: T.cardinal },
+      }[type];
+      return (
+        <div className={'flex gap-3 items-start rounded-xl ' + (compact ? 'p-3' : 'p-4')}
+          style={{ backgroundColor: styles.bg, border: '1px solid ' + styles.border }}>
+          {icon && <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5"
+            style={{ backgroundColor: styles.color + '12' }}>
+            <Icon name={icon} size={13} style={{ color: styles.color }} />
+          </div>}
+          <div className="flex-1 min-w-0">
+            {title && <div className="text-sm font-semibold mb-0.5" style={{ color: styles.color }}>{title}</div>}
+            <div className="text-sm leading-relaxed" style={{ color: styles.color }}>{children}</div>
+          </div>
+        </div>
+      );
+    };
+
+    const Tag = ({ children, color = T.inkMuted, bg = T.warm }) => (
+      <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full"
+        style={{ backgroundColor: bg, color }}>{children}</span>
+    );
+
+    const Lbl = ({ children }) => (
+      <div className="text-[11px] font-bold uppercase tracking-[0.08em] mb-2.5" style={{ color: T.inkLight }}>{children}</div>
+    );
+
+    const Anchor = ({ id }) => <div id={id} style={{ scrollMarginTop: 108 }} />;
+
+    const Dots = ({ items }) => items.map((t, i) => (
+      <div key={i} className="flex gap-2.5 mb-2 text-sm" style={{ color: T.inkSoft, lineHeight: 1.6 }}>
+        <span style={{ color: T.cardinal, fontSize: 8, marginTop: 7, flexShrink: 0 }}>●</span>
+        <span>{t}</span>
+      </div>
+    ));
+
+    const SonaBtn = ({ full, size = 'md' }) => (
+      <a href={COURSE.sonaUrl} target="_blank" rel="noopener noreferrer"
+        className={'inline-flex items-center justify-center gap-2 rounded-xl font-semibold press ' + (full ? 'w-full' : '')}
+        style={{
+          padding: size === 'sm' ? '10px 20px' : '14px 28px', fontSize: size === 'sm' ? 13 : 14,
+          backgroundColor: T.gold, color: '#fff',
+          boxShadow: '0 2px 8px rgba(168,128,0,0.2)', transition: 'all 0.2s'
+        }}
+        onMouseOver={e => { e.currentTarget.style.backgroundColor = T.goldDark; e.currentTarget.style.transform = 'translateY(-1px)' }}
+        onMouseOut={e => { e.currentTarget.style.backgroundColor = T.gold; e.currentTarget.style.transform = 'none' }}>
+        <Icon name="ExternalLink" size={size === 'sm' ? 14 : 15} style={{ color: '#fff' }} />Open SONA
+      </a>
+    );
+
+    const InfoRow = ({ icon, label, value, href }) => (
+      <div className="flex items-center gap-3 py-3 border-b last:border-b-0" style={{ borderColor: T.borderLight }}>
+        {icon && <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: T.warm }}>
+          <Icon name={icon} size={13} style={{ color: T.inkMuted }} />
+        </div>}
+        <div className="flex-1 min-w-0">
+          <div className="text-[10px] font-bold uppercase tracking-widest" style={{ color: T.inkLight }}>{label}</div>
+          {href ? <a href={href} className="text-sm font-medium" style={{ color: T.cardinal }}>{value}</a>
+            : <div className="text-sm font-medium" style={{ color: T.ink }}>{value}</div>}
+        </div>
+      </div>
+    );
+
+    /* ═══ ScrollProgress ═══ */
+    const ScrollProgress = () => {
+      const [p, setP] = useState(0);
+      useEffect(() => {
+        const f = () => { const s = document.documentElement.scrollTop; const h = document.documentElement.scrollHeight - document.documentElement.clientHeight; setP(h > 0 ? (s / h) * 100 : 0) };
+        window.addEventListener('scroll', f, { passive: true }); return () => window.removeEventListener('scroll', f);
+      }, []);
+      return <div className="scroll-bar print-hide" style={{ width: p + '%' }} />;
+    };
+
+    /* ═══ BackToTop ═══ */
+    const BackToTop = () => {
+      const [show, setShow] = useState(false);
+      useEffect(() => {
+        const f = () => setShow(window.scrollY > 500);
+        window.addEventListener('scroll', f, { passive: true }); return () => window.removeEventListener('scroll', f);
+      }, []);
+      if (!show) return null;
+      return (
+        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-24 lg:bottom-8 left-5 w-10 h-10 rounded-full shadow-lg flex items-center justify-center z-50 print-hide press animate-up"
+          style={{ backgroundColor: T.white, border: '1px solid ' + T.border }} aria-label="Back to top">
+          <Icon name="ArrowUp" size={16} style={{ color: T.cardinal }} />
+        </button>
+      );
+    };
+
+    /* ═══ Breadcrumbs ═══ */
+    const Breadcrumbs = ({ active, go }) => {
+      const names = { home: 'Dashboard', setup: 'Account Setup', credits: 'Earn Credits', schedule: 'Schedule', location: 'Lab Location', faq: 'FAQ', contact: 'Get Help' };
+      return (
+        <nav className="flex items-center gap-1.5 mb-6 print-hide animate-in" aria-label="Breadcrumb">
+          <button onClick={() => go('home')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium press"
+            style={{ backgroundColor: T.warm, color: T.inkMuted }}>
+            <Icon name="ArrowLeft" size={14} style={{ color: T.inkMuted }} />
+            <span className="hidden sm:inline">Dashboard</span>
+          </button>
+          <Icon name="ChevronRight" size={12} style={{ color: T.inkFaint }} />
+          <span className="px-3 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: T.cardinalLight, color: T.cardinal }}>{names[active]}</span>
+        </nav>
+      );
+    };
+
+    /* ═══ FloorPlan ═══ */
+    const FloorPlan = () => (
+      <div className="p-5 rounded-xl" style={{ backgroundColor: T.warm, border: '1px solid ' + T.borderLight }}>
+        <div className="flex items-center gap-2 mb-4">
+          <Icon name="Map" size={15} style={{ color: T.inkMuted }} />
+          <span className="text-sm font-bold" style={{ color: T.ink }}>VPD Building — Lower Level</span>
+        </div>
+        <div className="bg-white rounded-lg p-4 border" style={{ borderColor: T.border }}>
+          <div className="grid grid-cols-6 gap-1.5 text-xs">
+            <div className="col-span-2 p-3 rounded-lg text-center" style={{ backgroundColor: T.borderLight, color: T.inkLight }}>WC</div>
+            <div className="col-span-2 p-3 rounded-lg text-center" style={{ backgroundColor: T.borderLight, color: T.inkLight }}>ELEV</div>
+            <div className="col-span-2 p-3 rounded-lg text-center font-bold" style={{ backgroundColor: T.cardinal, color: '#fff' }}>LL112</div>
+            <div className="col-span-1 p-2 rounded-lg text-center" style={{ backgroundColor: T.greenBg, color: T.green, fontSize: 9 }}>EXIT</div>
+            <div className="col-span-3 p-3 rounded-lg text-center" style={{ backgroundColor: T.borderLight, color: T.inkLight }}>STAIRS ↓</div>
+            <div className="col-span-2 p-3 rounded-lg text-center font-bold" style={{ backgroundColor: T.cardinal, color: '#fff' }}>LL110</div>
+            <div className="col-span-3 p-3 rounded-lg text-center font-bold ring-2 ring-offset-2" style={{ backgroundColor: T.cardinal, color: '#fff', ringColor: T.cardinal }}>
+              LL102<br /><span className="text-[10px] font-normal opacity-80">YOUR DESTINATION</span>
+            </div>
+            <div className="col-span-2 p-3 rounded-lg text-center" style={{ backgroundColor: T.borderLight, color: T.inkLight }}>WC</div>
+            <div className="col-span-1 p-2 rounded-lg text-center" style={{ backgroundColor: T.blueBg, color: T.blue, fontSize: 9 }}>ENT</div>
+          </div>
+        </div>
+        <p className="text-sm mt-3" style={{ color: T.inkMuted }}>Ring the doorbell at your assigned room — all doors are card-access locked.</p>
+      </div>
+    );
+
+    /* ═══ SearchOverlay ═══ */
+    const SearchOverlay = ({ isOpen, onClose, go }) => {
+      const [query, setQuery] = useState('');
+      const [results, setResults] = useState([]);
+      const inputRef = useRef(null);
+      const content = [
+        { section: 'home', title: 'Dashboard', desc: 'Overview & quick links', icon: 'LayoutDashboard', keywords: 'home dashboard overview credits deadline' },
+        { section: 'setup', title: 'Account Setup', desc: 'Registration & prescreening', icon: 'Settings', keywords: 'register account create login password username netid sona sign up prescreening questionnaire survey demographics setup' },
+        { section: 'credits', title: 'Earn Credits', desc: 'In-person & online studies', icon: 'Award', keywords: 'credits studies online in-person lab invitations walk-in cancel' },
+        { section: 'schedule', title: 'Schedule', desc: 'Study dates & availability', icon: 'CalendarDays', keywords: 'schedule dates online study lab session spring break when available week' },
+        { section: 'location', title: 'Lab Location', desc: 'VPD Building directions', icon: 'MapPin', keywords: 'vpd dauterive hall ll102 ll110 ll112 lower level map directions' },
+        { section: 'faq', title: 'FAQ', desc: 'Common questions', icon: 'HelpCircle', keywords: 'help question problem forgot password not working accommodations' },
+        { section: 'contact', title: 'Get Help', desc: 'Contact the team', icon: 'LifeBuoy', keywords: 'email phone contact support slack brian huh mkt.sona kristin diehl' },
+      ];
+      useEffect(() => {
+        if (query.length < 2) { setResults([]); return }
+        const q = query.toLowerCase();
+        setResults(content.filter(c => c.title.toLowerCase().includes(q) || c.keywords.includes(q)));
+      }, [query]);
+      useEffect(() => {
+        if (isOpen) { setQuery(''); setTimeout(() => inputRef.current?.focus(), 100) }
+        const h = e => { if (e.key === 'Escape' && isOpen) onClose() };
+        document.addEventListener('keydown', h); return () => document.removeEventListener('keydown', h);
+      }, [isOpen, onClose]);
+      if (!isOpen) return null;
+      return (
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[12vh] sm:pt-[15vh]" style={{ backgroundColor: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)' }} onClick={onClose}>
+          <div className="w-full max-w-lg mx-4 rounded-2xl shadow-2xl overflow-hidden animate-up" style={{ backgroundColor: T.white }} onClick={e => e.stopPropagation()}>
+            <div className="p-4 flex items-center gap-3 border-b" style={{ borderColor: T.borderLight }}>
+              <Icon name="Search" size={18} style={{ color: T.cardinal, flexShrink: 0 }} />
+              <input ref={inputRef} value={query} onChange={e => setQuery(e.target.value)} placeholder="Search topics, pages, contacts..."
+                className="flex-1 text-base outline-none bg-transparent" style={{ color: T.ink }} />
+              <button onClick={onClose} className="p-1.5 rounded-lg press" style={{ backgroundColor: T.warm }}>
+                <Icon name="X" size={16} style={{ color: T.inkMuted }} />
+              </button>
+            </div>
+            <div className="max-h-80 overflow-y-auto">
+              {results.length === 0 && query.length >= 2 && <p className="p-5 text-sm" style={{ color: T.inkMuted }}>No results for "{query}"</p>}
+              {results.map((r, i) => (
+                <button key={i} onClick={() => { onClose(); go(r.section) }}
+                  className="w-full p-4 text-left border-b flex items-center gap-3 press"
+                  style={{ borderColor: T.borderLight, transition: 'background 0.15s' }}
+                  onMouseOver={e => e.currentTarget.style.backgroundColor = T.warm}
+                  onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: T.cardinalLight }}>
+                    <Icon name={r.icon} size={16} style={{ color: T.cardinal }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-semibold text-sm block" style={{ color: T.ink }}>{r.title}</span>
+                    <span className="text-xs" style={{ color: T.inkMuted }}>{r.desc}</span>
+                  </div>
+                  <Icon name="ArrowRight" size={14} style={{ color: T.inkFaint }} />
+                </button>
+              ))}
+              {query.length < 2 && (
+                <div className="p-5">
+                  <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: T.inkLight }}>Quick Navigation</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {content.map((c, i) => (
+                      <button key={i} onClick={() => { onClose(); go(c.section) }}
+                        className="flex items-center gap-2 p-3 rounded-xl text-left press"
+                        style={{ backgroundColor: T.warm, transition: 'background 0.15s' }}
+                        onMouseOver={e => e.currentTarget.style.backgroundColor = T.stone}
+                        onMouseOut={e => e.currentTarget.style.backgroundColor = T.warm}>
+                        <Icon name={c.icon} size={14} style={{ color: T.inkMuted }} />
+                        <span className="text-xs font-medium" style={{ color: T.inkSoft }}>{c.title}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    /* ═══ HelpChatBot ═══ */
+    const HelpChatBot = () => {
+      const [isOpen, setIsOpen] = useState(false);
+      const [messages, setMessages] = useState([]);
+      const [input, setInput] = useState('');
+      const [isTyping, setIsTyping] = useState(false);
+      const endRef = useRef(null);
+      const convo = useRef([]);
+      useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages]);
+
+      const greeting = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening' };
+
+      // Auto-generate schedule summary from SCHEDULE data
+      const schedSummary = SCHEDULE.items.filter(s => s.type).map(s => `${s.item}: ${s.week} (${s.status})`).join('. ');
+
+      const sysPrompt = `You are the Research Participation Assistant for USC Marshall BUAD 307 (Marketing Fundamentals). Be friendly, concise, student-oriented. Keep answers SHORT (2-4 sentences). Only answer about BUAD 307 research participation.
+
+KEY FACTS:
+- 4.0 total credits: 1.0 in-person (one 60-min session) + 3.0 online (6 × 0.5 credits)
+- SONA: marshall-mkt.sona-systems.com (yellow theme — NOT the 304/497 blue site)
+- SONA registration deadline EXTENDED from Feb 6 to Wed Feb 18 at 11:59 PM
+- Prescreening deadline EXTENDED from Feb 6 to Wed Feb 18 at 11:59 PM
+- Final deadline: May 1, 2026. No extensions.
+- ONE in-person session max per semester
+- Online studies: sign up and complete same day, invite-only rotating batches, posted by Wednesday of each week
+- In-person: 16 seats, arrive 10 min early, phones collected, walk-in option for no-shows
+- Cancel 8+ hours ahead for excused cancellation
+- Username: NetID only (smithj, not smithj@usc.edu)
+- Walk-in: wait outside ~5 min after check-in, must confirm haven't attended this semester
+- Under 18: alternative research paper
+- Spring Break: Mar 16-27 (no studies)
+
+CURRENT SCHEDULE (as of ${SCHEDULE.lastUpdated}):
+${schedSummary}
+
+CONTACTS:
+- SONA/credits/scheduling: mkt.sona@marshall.usc.edu / 213.821.9752
+- Program Manager: Brian Huh — huhb@marshall.usc.edu / 213.821.9746
+- Subject Pool Director: Prof. Kristin Diehl — kdiehl@marshall.usc.edu (accommodations)
+- Slack: #buad307-research-participation
+- Drop-in: Wed 2-3 PM in-person VPD LL110, Thu 2-3 PM Zoom (usc.zoom.us/j/2138219746)`;
+
+      const callAPI = async (text) => {
+        convo.current.push({ role: 'user', content: text });
+        try {
+          const r = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 300, system: sysPrompt, messages: convo.current })
+          });
+          if (!r.ok) throw new Error();
+          const d = await r.json();
+          const reply = d.content.map(b => b.type === 'text' ? b.text : '').join('').trim();
+          convo.current.push({ role: 'assistant', content: reply });
+          if (convo.current.length > 16) convo.current = convo.current.slice(-12);
+          return reply;
+        } catch { convo.current.pop(); return `I'm having trouble connecting. Email mkt.sona@marshall.usc.edu for help — they respond within 24 hours on weekdays.` }
+      };
+
+      const send = async (text) => {
+        if (!text.trim() || isTyping) return;
+        setMessages(p => [...p, { type: 'user', text }]); setInput(''); setIsTyping(true);
+        const reply = await callAPI(text);
+        setMessages(p => [...p, { type: 'bot', text: reply }]); setIsTyping(false);
+      };
+
+      const quickQ = ['How do credits work?', 'Login help', 'Where is the lab?', 'Walk-in option?'];
+
+      if (!isOpen) return (
+        <button onClick={() => setIsOpen(true)}
+          className="fixed bottom-20 lg:bottom-8 right-5 w-12 h-12 rounded-full shadow-lg flex items-center justify-center z-50 print-hide press"
+          style={{ backgroundColor: T.cardinal, animation: 'pulseGlow 3s ease-in-out infinite' }} aria-label="Open help chat">
+          <Icon name="MessageCircle" size={20} style={{ color: '#fff' }} />
+        </button>
+      );
+
+      return (
+        <div className="fixed bottom-20 lg:bottom-8 right-5 w-[calc(100vw-40px)] sm:w-96 rounded-2xl shadow-2xl overflow-hidden z-50 print-hide animate-up"
+          style={{ backgroundColor: T.white, border: '1px solid ' + T.border, maxWidth: 384 }}>
+          <div className="px-4 py-3 flex items-center justify-between"
+            style={{ background: 'linear-gradient(135deg, ' + T.cardinal + ', ' + T.cardinalDeep + ')' }}>
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}>
+                <Icon name="Bot" size={16} style={{ color: '#fff' }} />
+              </div>
+              <div>
+                <span className="font-semibold text-white text-sm">Research Assistant</span>
+                <span className="text-[11px] text-white/50 block">AI-powered help</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              {messages.length > 0 && <button onClick={() => { setMessages([]); convo.current = [] }} className="press p-1.5 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }} title="Start over"><Icon name="RotateCcw" size={14} style={{ color: 'rgba(255,255,255,0.6)' }} /></button>}
+              <button onClick={() => setIsOpen(false)} className="press p-1.5 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}><Icon name="X" size={18} style={{ color: 'rgba(255,255,255,0.7)' }} /></button>
+            </div>
+          </div>
+          <div className="h-72 overflow-y-auto p-4 space-y-3" style={{ backgroundColor: T.bg }}>
+            {messages.length === 0 && (
+              <div className="space-y-3">
+                <div className="p-3 rounded-xl text-sm mr-8 shadow-sm" style={{ backgroundColor: T.white, color: T.inkSoft }}>{greeting()}! I'm here to help with BUAD 307 research participation.</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {quickQ.map((q, i) => <button key={i} onClick={() => send(q)} className="text-xs px-3 py-1.5 rounded-full border press"
+                    style={{ borderColor: T.cardinal + '30', color: T.cardinal, backgroundColor: T.white }}>{q}</button>)}
+                </div>
+              </div>
+            )}
+            {messages.map((m, i) => (
+              <div key={i} className={'p-3 rounded-xl text-sm shadow-sm ' + (m.type === 'user' ? 'ml-8' : 'mr-8')}
+                style={{ backgroundColor: m.type === 'user' ? T.cardinal : T.white, color: m.type === 'user' ? '#fff' : T.inkSoft, whiteSpace: 'pre-line' }}>{m.text}</div>
+            ))}
+            {isTyping && <div className="mr-8 p-3 rounded-xl shadow-sm" style={{ backgroundColor: T.white }}>
+              <div className="flex gap-1.5">
+                {[0, 0.2, 0.4].map((d, i) => <span key={i} className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: T.inkLight, animation: `breathe 1.4s ease-in-out infinite ${d}s` }} />)}
+              </div>
+            </div>}
+            <div ref={endRef} />
+          </div>
+          <div className="p-3 border-t flex gap-2" style={{ borderColor: T.borderLight }}>
+            <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && send(input)}
+              placeholder="Ask me anything..."
+              className="flex-1 px-3 py-2.5 rounded-lg text-sm border outline-none" style={{ borderColor: T.border, backgroundColor: T.warm }} />
+            <button onClick={() => send(input)} disabled={isTyping || !input.trim()} className="px-3 py-2 rounded-lg press disabled:opacity-30"
+              style={{ backgroundColor: T.cardinal }}>
+              <Icon name="Send" size={14} style={{ color: '#fff' }} />
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    /* ═══════════════════════════ PAGES ═══════════════════════════ */
+
+    /* ── Comparison Table Component ── */
+    const ComparisonTable = () => (
+      <div className="overflow-x-auto -mx-1">
+        <table className="w-full text-sm" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
+          <thead>
+            <tr>
+              <th className="text-left p-3 rounded-tl-lg font-semibold" style={{ backgroundColor: T.warm, color: T.inkMuted, width: '30%' }}></th>
+              <th className="text-left p-3 font-semibold" style={{ backgroundColor: T.cardinal + '08', color: T.cardinal }}>In-Person Session</th>
+              <th className="text-left p-3 rounded-tr-lg font-semibold" style={{ backgroundColor: T.gold + '10', color: T.goldText }}>Online Studies</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              ['Credits', '1.0', '3.0 (6 × 0.5)'],
+              ['Duration', '60 minutes', '~10 minutes each'],
+              ['Location', 'VPD LL102', 'Anywhere with internet'],
+              ['Frequency', 'One session only', 'Six studies'],
+              ['Scheduling', 'Posted weekly on SONA', 'New studies most weeks'],
+              ['Cancellation', '8 hours via SONA', 'Complete immediately'],
+            ].map(([label, inPerson, online], i) => (
+              <tr key={i}>
+                <td className="p-3 font-medium" style={{ borderBottom: '1px solid ' + T.borderLight, color: T.inkSoft }}>{label}</td>
+                <td className="p-3" style={{ borderBottom: '1px solid ' + T.borderLight, color: T.inkSoft }}>{inPerson}</td>
+                <td className="p-3" style={{ borderBottom: '1px solid ' + T.borderLight, color: T.inkSoft }}>{online}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+
+    /* ─── Dashboard ─── */
+    const Dashboard = ({ go, nextOnline, nextLab }) => (
+      <div className="space-y-6 stagger">
+        {/* Hero — compact */}
+        <Card pad={false}>
+          <div className="relative overflow-hidden rounded-2xl" style={{ background: 'linear-gradient(135deg, #990000 0%, #5C0000 100%)' }}>
+            <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+            <div className="relative px-5 sm:px-6 py-5">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4 min-w-0">
+                  <div>
+                    <div className="flex items-center gap-2.5 mb-1">
+                      <h1 className="font-display text-xl sm:text-2xl text-white" style={{ fontWeight: 400, letterSpacing: '-0.01em' }}>
+                        Earn your research credits
+                      </h1>
+                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full flex-shrink-0" style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}>
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#4ADE80' }} />
+                        <span className="text-[10px] font-semibold text-white/80">Live</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-white/50">Complete <strong className="text-white/80">4.0 credits</strong> (6 online + 1 lab) before <strong className="text-white/80">May 1, 2026</strong> · No extensions</p>
+                  </div>
+                </div>
+                <SonaBtn />
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Alert banner */}
+        <Alert type="warning" icon="AlertTriangle" title="Registration & Prescreening Extended to Wed Feb 18 at 11:59 PM">
+          Both deadlines have been extended from the original Feb 6 date. If you haven't registered on SONA or completed prescreening yet, do so before Wednesday night.
+        </Alert>
+
+        <Anchor id="sec-about" />
+        {/* About the Program */}
+        <Card>
+          <h2 className="font-display text-xl mb-3" style={{ fontWeight: 500, color: T.ink }}>About the Program</h2>
+          <p className="text-sm mb-3" style={{ color: T.inkSoft, lineHeight: 1.75 }}>
+            Research participation is a core component of BUAD 307, offering you the opportunity to contribute directly to marketing research conducted by USC Marshall faculty. Through these studies, you'll explore foundational questions in the field—how consumers make decisions, what shapes brand perception, and what drives purchasing behavior—while gaining insight into how academic research progresses from hypothesis to publication.
+          </p>
+          <p className="text-sm mb-4" style={{ color: T.inkSoft, lineHeight: 1.75 }}>
+            The program is administered by the Marshall Behavioral Research Lab through SONA, an online research management system used by universities to coordinate study sign-ups, scheduling, and credit tracking. Registering for SONA is required to receive study notifications and be linked to the program. Your course instructor receives only your final credit total at the end of the term; for all program-related questions, contact the SONA Administrative Team at <a href="mailto:mkt.sona@marshall.usc.edu" style={{ color: T.cardinal }}>mkt.sona@marshall.usc.edu</a>.
+          </p>
+          <div className="p-4 rounded-xl" style={{ backgroundColor: T.blueBg, border: '1px solid ' + T.blueBorder }}>
+            <div className="text-sm font-semibold mb-1" style={{ color: T.blue }}>What to Expect</div>
+            <div className="text-sm" style={{ color: T.blue, lineHeight: 1.7 }}>Studies cover marketing-related topics—surveys, product evaluations, decision scenarios. No preparation is needed. All responses are confidential and will never be shared with your instructor or linked to your identity. Each study has been approved by the USC Institutional Review Board (IRB).</div>
+          </div>
+        </Card>
+
+        <Anchor id="sec-steps" />
+        {/* Step Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {[
+            { n: '1', t: 'Account Setup', s: 'Registration & Prescreening — Due Wed Feb 18, 11:59 PM', closed: false, nav: 'setup' },
+            { n: '2', t: 'Earn Credits', s: '4.0 credits by May 1', closed: false, nav: 'credits' }
+          ].map((s, i) => (
+            <button key={i} onClick={() => go(s.nav)}
+              className="card card-interactive p-5 text-center animate-up"
+              style={{ borderColor: s.closed ? T.borderLight : T.cardinal, borderWidth: s.closed ? 1 : 2, opacity: s.closed ? 0.5 : 1, animationDelay: (i * 0.05) + 's' }}>
+              <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold mx-auto mb-3"
+                style={{ backgroundColor: s.closed ? T.stone : T.cardinal, color: '#fff' }}>{s.n}</div>
+              <div className="text-sm font-semibold mb-0.5" style={{ color: T.ink }}>{s.t}</div>
+              <div className="text-xs" style={{ color: T.inkMuted }}>{s.s}</div>
+              <div className="mt-3"><Tag color={s.closed ? T.inkLight : T.green} bg={s.closed ? T.warm : T.greenBg}>{s.closed ? 'Closed' : 'Active'}</Tag></div>
+            </button>
+          ))}
+        </div>
+
+        <Anchor id="sec-schedule-cta" />
+        {/* Schedule Preview */}
+        <Card pad={false}>
+          <div className="p-5 pb-3">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: T.goldBg }}>
+                  <Icon name="CalendarDays" size={16} style={{ color: T.gold }} />
+                </div>
+                <h3 className="text-sm font-bold" style={{ color: T.ink }}>Coming Up Next</h3>
+              </div>
+              <button onClick={() => go('schedule')} className="flex items-center gap-1 text-xs font-semibold press"
+                style={{ color: T.cardinal }}>
+                Full Schedule <Icon name="ArrowRight" size={12} style={{ color: T.cardinal }} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {/* Next Online */}
+              {nextOnline && (
+                <button onClick={() => go('schedule')} className="flex items-center gap-3 p-3.5 rounded-xl text-left card-interactive"
+                  style={{ backgroundColor: nextOnline.status === 'available' ? T.greenBg : T.warm, border: '1px solid ' + (nextOnline.status === 'available' ? T.greenBorder : T.borderLight) }}>
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: nextOnline.status === 'available' ? T.green : T.gold, color: '#fff' }}>
+                    <Icon name="Monitor" size={16} style={{ color: '#fff' }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold" style={{ color: nextOnline.status === 'available' ? T.green : T.ink }}>{nextOnline.item}</div>
+                    <div className="text-xs mt-0.5" style={{ color: nextOnline.status === 'available' ? T.green : T.inkMuted }}>
+                      {nextOnline.status === 'available' ? 'Available Now — spots remaining' : 'Week of ' + nextOnline.week}
+                    </div>
+                  </div>
+                  {nextOnline.status === 'available' && <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: T.green, animation: 'breathe 2s infinite' }} />}
+                </button>
+              )}
+
+              {/* Next Lab */}
+              {nextLab && (
+                <button onClick={() => go('schedule')} className="flex items-center gap-3 p-3.5 rounded-xl text-left card-interactive"
+                  style={{ backgroundColor: T.cardinalLight, border: '1px solid ' + T.cardinal + '15' }}>
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: T.cardinal, color: '#fff' }}>
+                    <Icon name="Building" size={14} style={{ color: '#fff' }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold" style={{ color: T.cardinal }}>{nextLab.item}</div>
+                    <div className="text-xs mt-0.5" style={{ color: T.cardinal }}>{nextLab.week} · VPD LL102</div>
+                  </div>
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="px-5 py-3 flex items-center gap-2 rounded-b-2xl" style={{ backgroundColor: T.warm, borderTop: '1px solid ' + T.borderLight }}>
+            <Icon name="Info" size={12} style={{ color: T.inkMuted }} />
+            <span className="text-xs" style={{ color: T.inkMuted }}>11 online studies + 5 lab sessions this semester · Complete 6 online + 1 lab</span>
+          </div>
+        </Card>
+
+        <Anchor id="sec-credits-req" />
+        {/* Credit Requirements */}
+        <Accordion title="Credit Requirements & Grading" icon="Target" defaultOpen={true} badge={{ text: 'Required', bg: T.amberBg, color: '#78350F' }}>
+          <p className="text-sm mb-4" style={{ color: T.inkSoft, lineHeight: 1.7 }}>
+            Your goal is <strong style={{ color: T.ink }}>4.0 credits by May 1, 2026</strong>, requiring roughly 2 hours total. You must complete both the in-person session and online studies to earn full credit.
+          </p>
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            <div className="p-5 rounded-xl" style={{ backgroundColor: T.warm, border: '1px solid ' + T.borderLight }}>
+              <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.cardinal }}>In-Person Lab</div>
+              <div className="text-3xl font-bold leading-none" style={{ letterSpacing: '-0.03em' }}>1.0</div>
+              <div className="text-xs mt-1.5" style={{ color: T.inkMuted }}>1 session · 60 min · VPD LL102</div>
+              <div className="text-xs mt-1" style={{ color: T.inkMuted }}>Posted weekly on SONA · Arrive 10 min early — doors close at start</div>
+            </div>
+            <div className="p-5 rounded-xl" style={{ backgroundColor: T.warm, border: '1px solid ' + T.borderLight }}>
+              <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.gold }}>Online Studies</div>
+              <div className="text-3xl font-bold leading-none" style={{ letterSpacing: '-0.03em' }}>3.0</div>
+              <div className="text-xs mt-1.5" style={{ color: T.inkMuted }}>6 studies · ~10 min each · 0.5 cr each</div>
+              <div className="text-xs mt-1" style={{ color: T.inkMuted }}>From anywhere with internet · New studies posted most weeks</div>
+            </div>
+          </div>
+          <div className="flex gap-0.5 rounded-full overflow-hidden h-2.5" style={{ backgroundColor: T.borderLight }}>
+            <div className="rounded-l-full" style={{ width: '25%', backgroundColor: T.cardinal }} />
+            <div className="rounded-r-full" style={{ width: '75%', backgroundColor: T.gold }} />
+          </div>
+          <div className="flex justify-between mt-2 mb-5 px-1">
+            <span className="text-[10px] font-semibold" style={{ color: T.cardinal }}>In-Person 25%</span>
+            <span className="text-[10px] font-semibold" style={{ color: T.gold }}>Online 75%</span>
+          </div>
+
+          <Lbl>How Grading Works</Lbl>
+          <p className="text-sm mb-4" style={{ color: T.inkSoft, lineHeight: 1.7 }}>
+            Your research participation grade is based on the percentage of credits you complete (out of 4.0), applied to the weight specified in your course syllabus. Credits not completed by the <strong style={{ color: T.cardinal }}>May 1 deadline</strong> result in a partial grade—there is no extension or grace period. See your syllabus for the specific grading weight.
+          </p>
+          <div className="grid grid-cols-4 gap-2 mb-5">
+            {[{ c: '4.0', p: '100%', h: true }, { c: '3.0', p: '75%' }, { c: '2.0', p: '50%' }, { c: '0.0', p: '0%' }].map((g, i) => (
+              <div key={i} className="text-center p-3 rounded-xl" style={{ backgroundColor: g.h ? T.greenBg : T.warm, border: '1px solid ' + (g.h ? T.greenBorder : T.borderLight) }}>
+                <div className="text-lg font-bold" style={{ color: g.h ? T.green : T.ink }}>{g.c}</div>
+                <div className="text-[10px]" style={{ color: T.inkMuted }}>{g.p}</div>
+              </div>
+            ))}
+          </div>
+
+          <Lbl>Quick Comparison</Lbl>
+          <ComparisonTable />
+        </Accordion>
+
+        <Anchor id="sec-dates" />
+        {/* Key Dates Timeline */}
+        <Accordion title="Key Dates" icon="Calendar">
+          <div className="flex flex-col gap-0">
+            {[
+              { date: 'Jan 12', label: 'Registration Opens', done: true },
+              { date: 'Feb 6', label: 'Original Registration & Prescreening Deadline', done: true },
+              { date: 'Mid-Feb', label: 'Studies Begin', done: true },
+              { date: 'Feb 18', label: 'Registration & Prescreening Deadline (Extended)', done: false, active: true },
+              { date: 'May 1', label: 'Final Deadline — No Extensions', done: false, important: true },
+            ].map((d, i, arr) => (
+              <div key={i} className="flex gap-4">
+                <div className="flex flex-col items-center" style={{ width: 20 }}>
+                  <div className="w-3 h-3 rounded-full flex-shrink-0 mt-1.5" style={{
+                    backgroundColor: d.active ? T.cardinal : d.done ? T.green : d.important ? T.cardinal : T.border,
+                    boxShadow: d.active ? '0 0 0 4px ' + T.cardinal + '20' : 'none'
+                  }} />
+                  {i < arr.length - 1 && <div className="w-px flex-1 my-1" style={{ backgroundColor: T.border }} />}
+                </div>
+                <div className="pb-5 min-w-0">
+                  <div className="text-xs font-bold" style={{ color: d.important ? T.cardinal : d.active ? T.cardinal : d.done ? T.green : T.inkMuted }}>{d.date}</div>
+                  <div className="text-sm mt-0.5" style={{ color: T.inkSoft }}>{d.label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <Lbl>Study Posting Schedule</Lbl>
+          <p className="text-sm mb-2" style={{ color: T.inkSoft, lineHeight: 1.7 }}><strong style={{ color: T.ink }}>Schedule Availability:</strong> The complete study schedule will be available by mid-February and will be announced when ready.</p>
+          <p className="text-sm mb-2" style={{ color: T.inkSoft, lineHeight: 1.7 }}><strong style={{ color: T.ink }}>In-Person Sessions:</strong> Posted on SONA the week prior to their scheduled date.</p>
+          <p className="text-sm" style={{ color: T.inkSoft, lineHeight: 1.7 }}><strong style={{ color: T.ink }}>Online Studies:</strong> New studies posted most weeks throughout the semester.</p>
+        </Accordion>
+
+        <Anchor id="sec-quickref" />
+        {/* Quick Reference */}
+        <Accordion title="Quick Reference" icon="Bookmark">
+          <InfoRow icon="Globe" label="SONA Portal" value="marshall-mkt.sona-systems.com" href={COURSE.sonaUrl} />
+          <InfoRow icon="Calendar" label="Setup Deadline (Reg + Prescreening)" value="February 18, 2026 at 11:59 PM (Extended from Feb 6)" />
+          <InfoRow icon="CalendarCheck" label="Final Deadline" value="May 1, 2026" />
+          <InfoRow icon="Target" label="Credit Goal" value="4.0 credits (1.0 in-person + 3.0 online)" />
+          <InfoRow icon="Clock" label="Cancellation Policy" value="8 hours advance notice required" />
+          <InfoRow icon="MapPin" label="Lab Location" value="VPD LL102 — 635 Downey Way" />
+          <InfoRow icon="Mail" label="Contact" value="mkt.sona@marshall.usc.edu" href={'mailto:' + COURSE.email} />
+          <div className="mt-5">
+            <a href={COURSE.handoutUrl} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold border-2 press"
+              style={{ borderColor: T.cardinal, color: T.cardinal, transition: 'all 0.2s' }}
+              onMouseOver={e => e.currentTarget.style.backgroundColor = T.cardinalLight}
+              onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+              <Icon name="FileText" size={15} style={{ color: T.cardinal }} />Download Handout (PDF)
+            </a>
+          </div>
+        </Accordion>
+
+        <Anchor id="sec-eligibility" />
+        {/* Eligibility & Alternatives */}
+        <Accordion title="Eligibility & Alternatives" icon="Shield">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Lbl>Voluntary Participation</Lbl>
+              <p className="text-sm" style={{ color: T.inkSoft, lineHeight: 1.7 }}>Participation is voluntary—you may withdraw from any study at any time without affecting your grade or academic standing. All responses are confidential and will never be shared with your instructor or linked to your identity. Each study has been approved by the USC Institutional Review Board (IRB).</p>
+            </div>
+            <div>
+              <Lbl>Alternative Assignment</Lbl>
+              <p className="text-sm" style={{ color: T.inkSoft, lineHeight: 1.7 }}>If you're still under 18 by Friday, February 6, 2026, or have USC-approved documentation to participate remotely, you'll complete a research paper instead. Contact your instructor about topics and requirements.</p>
+            </div>
+          </div>
+          <div className="mt-4">
+            <p className="text-xs" style={{ color: T.inkMuted, lineHeight: 1.6 }}><strong style={{ color: T.ink }}>Need accommodations?</strong> Contact Professor Kristin Diehl (<a href="mailto:kdiehl@marshall.usc.edu" style={{ color: T.cardinal }}>kdiehl@marshall.usc.edu</a>) and copy the SONA Administrative Team as early in the semester as possible.</p>
+          </div>
+        </Accordion>
+
+        <Anchor id="sec-tips" />
+        {/* Tips for Success */}
+        <Accordion title="Tips for Success" icon="Star">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {[
+              { icon: 'Key', t: 'Save your SONA ID', d: 'Keep your 5–6 digit ID handy (screenshot from confirmation email or SONA profile)' },
+              { icon: 'Bell', t: 'Respond to notifications', d: 'When you receive a study email, act quickly — spots are first come, first served across ~1,000 students' },
+              { icon: 'RefreshCw', t: 'Check SONA weekly', d: 'New online studies are posted most weeks. Log in regularly to stay on top of openings' },
+              { icon: 'MessageSquare', t: 'Use Slack for quick questions', d: 'Join #buad307-research-participation for fast answers about scheduling and credits' },
+              { icon: 'BarChart3', t: 'Track your progress', d: 'Check your SONA profile for credit balance. Aim to finish well before the May 1 deadline' },
+              { icon: 'ShieldCheck', t: "Don't discuss study content", d: 'Keep study details confidential to protect research validity for other participants' },
+            ].map((tip, i) => (
+              <div key={i} className="flex gap-3 p-3 rounded-xl" style={{ backgroundColor: T.warm }}>
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: T.cardinal + '10' }}>
+                  <Icon name={tip.icon} size={13} style={{ color: T.cardinal }} />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold" style={{ color: T.ink }}>{tip.t}</div>
+                  <div className="text-xs mt-0.5" style={{ color: T.inkMuted, lineHeight: 1.5 }}>{tip.d}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Accordion>
+      </div>
+    );
+
+    /* ─── Earn Credits ─── */
+    const EarnCredits = () => (
+      <div className="space-y-5 stagger">
+        <Section title="Earn Your Credits" subtitle="Complete 4.0 credits through in-person and online studies." icon="Award" />
+
+        <Card>
+          <p className="text-sm mb-3" style={{ color: T.inkSoft, lineHeight: 1.75 }}>
+            Studies start mid-February (several weeks into the semester) once course rosters are set. When studies are posted, email invitations go out to all ~1,000 students across BUAD 307 sections—spots are first come, first served, so act quickly when you receive a notification. We schedule enough total spots to ensure everyone who registers by the deadline can complete their requirements.
+          </p>
+          <p className="text-sm" style={{ color: T.inkSoft, lineHeight: 1.75 }}>
+            Always have your SONA ID handy when participating. You'll complete two types of research activities to earn your 4.0 credits.
+          </p>
+        </Card>
+
+        <Anchor id="sec-overview" />
+        <Alert type="error" icon="AlertTriangle" title="One In-Person Session Only" compact>
+          Attend exactly one lab session per semester. A second attendance earns no credit (same studies are used). Check your SONA credit history if unsure.
+        </Alert>
+
+        <Anchor id="sec-inperson" />
+        {/* In-Person Session */}
+        <Accordion title="In-Person Lab Session" icon="Building" defaultOpen={true} badge={{ text: '1.0 cr', bg: T.redBg, color: T.cardinal }}>
+          <p className="text-sm mb-4" style={{ color: T.inkSoft, lineHeight: 1.7 }}>
+            One 60-minute session at VPD LL102 (on campus). Sessions are posted weekly on SONA with 16 participants per session. Sign up early—you cannot register for another slot unless you cancel. All participants must start and end together.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+            <div>
+              <Lbl>Before You Arrive</Lbl>
+              <Dots items={[
+                'Have your 5–6 digit SONA ID ready (screenshot from confirmation email or SONA profile)',
+                'Eat beforehand if needed — only water is allowed in the lab',
+                'Plan to stay the full 60 minutes, even if you finish early',
+                'Arrive 10 minutes early — doors close at start time',
+              ]} />
+            </div>
+            <div>
+              <Lbl>At Check-In</Lbl>
+              <Dots items={[
+                'Arrive 10 minutes early; check-in begins before the session starts',
+                'Give the research assistant your 5–6 digit SONA ID',
+                'Phone policy: your phone will either be collected or powered down completely',
+                'Leave bags, food, and drinks (except water) against the back wall',
+                "You'll be assigned a random seat (friends will be seated separately to ensure independent responses)",
+              ]} />
+            </div>
+          </div>
+
+          <Lbl>During the Session</Lbl>
+          <Dots items={[
+            'Everyone begins the first study together at the same time',
+            'Complete studies in the order given by the research assistant — not the order shown in your folder',
+            'Raise your hand after finishing each study; an assistant will direct you to the next one',
+            'Remain at your station quietly if you finish early — you may browse the web on the lab computer',
+            'The session ends at the scheduled time; you cannot leave early',
+          ]} />
+
+          {/* Day-of Checklist */}
+          <div className="mt-5 p-4 rounded-xl" style={{ backgroundColor: T.warm, border: '1px solid ' + T.borderLight }}>
+            <div className="flex items-center gap-2 mb-3">
+              <Icon name="CheckSquare" size={15} style={{ color: T.cardinal }} />
+              <span className="text-sm font-bold" style={{ color: T.ink }}>Day-of Checklist</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.inkLight }}>The Night Before</div>
+                {['Screenshot your 5–6 digit SONA ID', 'Confirm session time and plan your route to VPD LL102', 'Set a reminder to arrive 10 minutes early'].map((t, i) => (
+                  <div key={i} className="flex gap-2 mb-1.5 text-xs" style={{ color: T.inkSoft }}><span style={{ color: T.green }}>☐</span><span>{t}</span></div>
+                ))}
+              </div>
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.inkLight }}>Before You Leave</div>
+                {['Bring only what you need (bags go against the back wall)', "Eat if you'll be hungry — no food allowed in the lab"].map((t, i) => (
+                  <div key={i} className="flex gap-2 mb-1.5 text-xs" style={{ color: T.inkSoft }}><span style={{ color: T.green }}>☐</span><span>{t}</span></div>
+                ))}
+              </div>
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.inkLight }}>At the Session</div>
+                {['Arrive 10 minutes early for check-in', 'Have your SONA ID ready', 'Be prepared to hand over your phone or power it down'].map((t, i) => (
+                  <div key={i} className="flex gap-2 mb-1.5 text-xs" style={{ color: T.inkSoft }}><span style={{ color: T.green }}>☐</span><span>{t}</span></div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+            <div className="p-3.5 rounded-xl" style={{ backgroundColor: T.warm, border: '1px solid ' + T.borderLight }}>
+              <div className="flex items-center gap-1.5 mb-1.5"><Icon name="Clock" size={12} style={{ color: T.inkMuted }} /><span className="text-xs font-bold" style={{ color: T.ink }}>Late Arrival</span></div>
+              <p className="text-xs" style={{ color: T.inkMuted, lineHeight: 1.6 }}>Doors close at start time — no late entry. Research validity requires all participants to start together. If closed, ring the silent doorbell (don't knock) to reschedule.</p>
+            </div>
+            <div className="p-3.5 rounded-xl" style={{ backgroundColor: T.warm, border: '1px solid ' + T.borderLight }}>
+              <div className="flex items-center gap-1.5 mb-1.5"><Icon name="Users" size={12} style={{ color: T.inkMuted }} /><span className="text-xs font-bold" style={{ color: T.ink }}>Walk-In Option</span></div>
+              <p className="text-xs" style={{ color: T.inkMuted, lineHeight: 1.6 }}>No sign-up? Wait outside until check-in completes (~5 min). A research assistant will let you know if no-show spots opened. Confirm you haven't attended another session this semester. Not guaranteed — registering in advance is strongly encouraged.</p>
+            </div>
+          </div>
+        </Accordion>
+
+        <Anchor id="sec-online" />
+        {/* Online Studies */}
+        <Accordion title="Online Studies" icon="Monitor" badge={{ text: '3.0 cr', bg: T.goldBg, color: T.goldText }}>
+          <p className="text-sm mb-4" style={{ color: T.inkSoft, lineHeight: 1.7 }}>
+            Complete six ~10-minute studies from anywhere with internet. New studies are posted most weeks throughout the semester, each worth 0.5 credits. Close other tabs and silence your phone. Your thoughtful, attentive responses contribute to meaningful research findings. Studies may include attention-check questions to ensure data quality.
+          </p>
+
+          <Alert type="error" icon="AlertTriangle" title="Complete Immediately After Signing Up" compact>
+            You cannot save your spot and return later. Holding a spot prevents other students from participating. Incomplete sign-ups are automatically canceled each morning.
+          </Alert>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div>
+              <Lbl>Before You Start</Lbl>
+              <Dots items={[
+                'Have your SONA ID ready',
+                'Find a quiet spot with stable internet',
+                'Close other browser tabs and apps',
+                'Silence your phone and minimize distractions',
+                'Set aside 15–20 uninterrupted minutes',
+              ]} />
+            </div>
+            <div>
+              <Lbl>During the Study</Lbl>
+              <Dots items={[
+                'Read all instructions carefully before starting',
+                'Answer thoughtfully and honestly',
+                "Don't refresh or navigate away — you may lose progress",
+                'Complete the study in one sitting',
+                'Watch for attention-check questions',
+              ]} />
+            </div>
+          </div>
+
+          <div className="mt-4 p-4 rounded-xl" style={{ backgroundColor: T.greenBg, border: '1px solid ' + T.greenBorder }}>
+            <div className="text-sm font-semibold mb-1" style={{ color: T.green }}>Best Practices</div>
+            <div className="text-sm" style={{ color: T.green, lineHeight: 1.7 }}>Answer thoughtfully and honestly · Find a quiet spot with minimal distractions · Read instructions carefully · Give yourself enough time — no rushing · Pay attention to attention-check questions · Don't discuss study content with others</div>
+          </div>
+        </Accordion>
+
+        <Anchor id="sec-invitations" />
+        {/* How Invitations Work */}
+        <Accordion title="How Invitations Work" icon="Send">
+          <p className="text-sm mb-4" style={{ color: T.inkSoft, lineHeight: 1.7 }}>Studies are invite-only. Invitations go out in rotating batches so everyone gets a fair shot. Didn't get one this round? More are coming.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="p-4 rounded-xl" style={{ backgroundColor: T.warm, border: '1px solid ' + T.borderLight }}>
+              <div className="text-sm font-semibold mb-1.5" style={{ color: T.ink }}>Online Invites</div>
+              <div className="text-sm" style={{ color: T.inkSoft }}>Sign up and complete within <strong>3 days</strong>. First-come, first-served.</div>
+            </div>
+            <div className="p-4 rounded-xl" style={{ backgroundColor: T.warm, border: '1px solid ' + T.borderLight }}>
+              <div className="text-sm font-semibold mb-1.5" style={{ color: T.ink }}>In-Person Invites</div>
+              <div className="text-sm" style={{ color: T.inkSoft }}>Sent to all eligible students. Book a slot 1–2 weeks out.</div>
+            </div>
+          </div>
+        </Accordion>
+
+        <Anchor id="sec-cancellations" />
+        {/* Cancellations */}
+        <Accordion title="Cancellations & Absences" icon="XCircle">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <div className="p-4 rounded-xl" style={{ backgroundColor: T.warm, border: '1px solid ' + T.borderLight }}>
+              <div className="text-sm font-semibold mb-1.5" style={{ color: T.cardinal }}>Online</div>
+              <div className="text-sm" style={{ color: T.inkSoft }}>Reply to the invite email to cancel so your spot can be reassigned. Complete immediately after signing up. Incomplete sign-ups are canceled each morning.</div>
+            </div>
+            <div className="p-4 rounded-xl" style={{ backgroundColor: T.warm, border: '1px solid ' + T.borderLight }}>
+              <div className="text-sm font-semibold mb-1.5" style={{ color: T.cardinal }}>In-Person</div>
+              <div className="text-sm" style={{ color: T.inkSoft }}>Cancel <strong>8+ hours ahead</strong> via email or SONA. Notify with a valid reason (illness, emergency, technical issue).</div>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="p-3.5 rounded-xl" style={{ backgroundColor: T.greenBg, border: '1px solid ' + T.greenBorder }}>
+              <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: T.green }}>Excused</div>
+              <div className="text-xs" style={{ color: T.green }}>Canceled 8+ hours in advance via SONA, or notified with valid reason (illness, emergency, technical issue)</div>
+            </div>
+            <div className="p-3.5 rounded-xl" style={{ backgroundColor: T.redBg, border: '1px solid ' + T.redBorder }}>
+              <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: T.cardinal }}>Unexcused</div>
+              <div className="text-xs" style={{ color: T.cardinal }}>No-show without notification, late cancellation without valid reason, or repeated missed commitments</div>
+            </div>
+          </div>
+          <p className="text-xs mt-3" style={{ color: T.inkMuted, lineHeight: 1.6 }}><strong style={{ color: T.ink }}>Repeated no-shows</strong> may affect your ability to reserve future spots. This applies to scheduling, not your right to withdraw during a study. Make-up opportunities are not guaranteed.</p>
+        </Accordion>
+
+        <Anchor id="sec-comparison" />
+        {/* Comparison Table */}
+        <Accordion title="In-Person vs Online — Quick Comparison" icon="Columns">
+          <ComparisonTable />
+        </Accordion>
+      </div>
+    );
+
+    /* ─── Registration ─── */
+    const SetupPage = () => (
+      <div className="space-y-5 stagger">
+        <Section title="Account Setup" subtitle="Register on SONA and complete prescreening to start earning credits." icon="Settings" />
+
+        <Alert type="warning" icon="AlertTriangle" title="Deadline Extended — Wednesday, February 18 at 11:59 PM">
+          Both the registration and prescreening deadlines have been extended from the original February 6 date. Complete both steps before Wed Feb 18 at 11:59 PM.
+        </Alert>
+
+        <Anchor id="sec-registration" />
+        {/* Part 1: Registration */}
+        <Card accent={T.cardinal}>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: T.cardinalLight }}>
+              <Icon name="UserPlus" size={17} style={{ color: T.cardinal }} />
+            </div>
+            <div>
+              <h3 className="font-display text-lg" style={{ fontWeight: 500, color: T.ink }}>Step 1 — SONA Registration</h3>
+              <p className="text-xs" style={{ color: T.inkMuted }}>Create your account to receive study notifications</p>
+            </div>
+          </div>
+
+          <p className="text-sm mb-4" style={{ color: T.inkSoft, lineHeight: 1.75 }}>
+            SONA is the online research management system used by the Marshall Behavioral Research Lab. Through SONA, you'll sign up for studies, track your credits, receive notifications when new studies are posted, and access researcher contact information. Verify you're on the right site: look for the <strong style={{ color: T.goldText }}>yellow accent bar</strong> and "Marketing (MKT) – Research Participation for BUAD 307" in the header.
+          </p>
+
+          <p className="text-xs mt-1 mb-4 px-3 py-2 rounded-lg" style={{ backgroundColor: T.warm, color: T.inkMuted, lineHeight: 1.6 }}>
+            <strong style={{ color: T.ink }}>Why this matters:</strong> Until you register, you won't receive study notifications or be linked to this program.
+          </p>
+
+          <div className="mt-5 space-y-0">
+            {[
+              { n: 1, title: 'Create Account', desc: 'Register at marshall-mkt.sona-systems.com. Use your USC email username only (your NetID, e.g. "smithj"). Do not include @usc.edu.' },
+              { n: 2, title: 'Confirm Email', desc: 'Check your USC email for confirmation with temporary password. Log in and reset your password immediately. No email? Check spam, retry registration, or verify your NetID.' },
+            ].map((step, i) => (
+              <div key={i} className="flex items-start gap-4 py-4" style={{ borderBottom: i < 1 ? '1px solid ' + T.borderLight : 'none' }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+                  style={{ backgroundColor: T.cardinalLight, color: T.cardinal }}>{step.n}</div>
+                <div>
+                  <div className="text-sm font-semibold mb-0.5" style={{ color: T.ink }}>{step.title}</div>
+                  <div className="text-sm" style={{ color: T.inkSoft, lineHeight: 1.6 }}>{step.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 p-4 rounded-xl" style={{ backgroundColor: T.greenBg, border: '1px solid ' + T.greenBorder }}>
+            <div className="flex items-center gap-2 mb-1">
+              <Icon name="CheckCircle" size={15} style={{ color: T.green }} />
+              <span className="text-sm font-semibold" style={{ color: T.green }}>Registration Complete!</span>
+            </div>
+            <p className="text-sm" style={{ color: T.green, lineHeight: 1.6 }}>You'll receive email notifications when studies are posted. Your confirmation email contains your SONA ID (5–6 digits)—save this for all research participation.</p>
+          </div>
+
+          <p className="text-xs mt-4 px-3 py-2 rounded-lg" style={{ backgroundColor: T.warm, color: T.inkMuted }}><strong style={{ color: T.ink }}>⚠ Username format:</strong> Use your NetID only (like "smithj"), not your full email address.</p>
+
+          <div className="mt-5"><SonaBtn full={true} /></div>
+        </Card>
+
+        <Anchor id="sec-prescreening" />
+        {/* Part 2: Prescreening */}
+        <Card accent={T.gold}>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: T.goldBg }}>
+              <Icon name="ClipboardList" size={17} style={{ color: T.gold }} />
+            </div>
+            <div>
+              <h3 className="font-display text-lg" style={{ fontWeight: 500, color: T.ink }}>Step 2 — Prescreening Questionnaire</h3>
+              <p className="text-xs" style={{ color: T.inkMuted }}>20–30 minutes · Matches you with relevant studies</p>
+            </div>
+          </div>
+
+          <p className="text-sm mb-4" style={{ color: T.inkSoft, lineHeight: 1.75 }}>
+            The prescreening questionnaire asks about demographics, interests, and experiences. SONA will prompt you to complete it upon login. Answer honestly—your responses are used to match you with relevant studies throughout the semester. There are no right or wrong answers.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <div className="p-5 rounded-xl" style={{ backgroundColor: T.greenBg, border: '1px solid ' + T.greenBorder }}>
+              <Lbl><span style={{ color: T.green }}>Before You Start</span></Lbl>
+              {['Quiet location with minimal distractions', 'Chrome or Firefox browser (no mobile browsers)', '30 minutes set aside — no interruptions', 'Stable internet connection'].map((t, i) => <div key={i} className="text-sm mb-1.5" style={{ color: T.green }}>· {t}</div>)}
+            </div>
+            <div className="p-5 rounded-xl" style={{ backgroundColor: T.redBg, border: '1px solid ' + T.redBorder }}>
+              <Lbl><span style={{ color: T.cardinal }}>Important</span></Lbl>
+              {['No partial saves — you must finish in one sitting', 'Do not close the browser window', 'No mobile browsers (desktop/laptop only)', 'If you experience technical issues, email mkt.sona@marshall.usc.edu immediately'].map((t, i) => <div key={i} className="text-sm mb-1.5" style={{ color: T.cardinal }}>· {t}</div>)}
+            </div>
+          </div>
+
+          <p className="text-xs mt-3" style={{ color: T.inkMuted }}>Your prescreening responses are confidential and used only for study matching — never shared with your instructor.</p>
+        </Card>
+
+        <Anchor id="sec-missed" />
+        {/* What Happens If You Miss the Deadline */}
+        <Alert type="error" icon="Info" title="Missed the Deadline?">
+          If you don't complete registration and prescreening by the deadline, you must complete the alternative paper assignment instead. Contact your instructor for details.
+        </Alert>
+      </div>
+    );
+
+    /* ─── Lab Location ─── */
+    const LabLocation = () => (
+      <div className="space-y-5 stagger">
+        <Section title="Lab Location & Directions" subtitle="In-person sessions take place at the Marshall Behavioral Research Lab. Plan your first visit ahead of time." icon="MapPin" />
+
+        <Card>
+          <Anchor id="sec-loc-directions" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+            <div>
+              <h3 className="text-sm font-bold mb-2" style={{ color: T.ink }}>Marshall Behavioral Research Lab</h3>
+              <p className="text-sm mb-1" style={{ color: T.inkSoft }}>VPD Building (Verna and Peter Dauterive Hall), Room LL102</p>
+              <p className="text-sm mb-3" style={{ color: T.inkMuted }}>635 Downey Way, Los Angeles, CA 90089</p>
+              <Dots items={[
+                'Two entrances: North (W 36th St courtyard) or South (W Exposition Blvd)',
+                'Go to Lower Level: Take elevator or stairs down, look for LL102',
+                'Card-access only — Ring the doorbell at LL102 for assistance',
+              ]} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold mb-2" style={{ color: T.ink }}>Finding the Lab</h3>
+              <p className="text-sm" style={{ color: T.inkSoft, lineHeight: 1.7 }}>The VPD Building (Verna and Peter Dauterive Hall) is located on the north side of W Exposition Blvd, between Hubbard Hall and Popovich Hall. Look for the main entrance courtyard from W 36th Street or the south entrance directly from Exposition. Enter the building, take the wooden staircase down.</p>
+            </div>
+          </div>
+
+          <Anchor id="sec-loc-floorplan" />
+          <FloorPlan />
+
+          <Anchor id="sec-loc-bring" />
+          <div className="mt-6 p-4 rounded-xl" style={{ backgroundColor: T.greenBg, border: '1px solid ' + T.greenBorder }}>
+            <div className="text-sm font-bold mb-2" style={{ color: T.green }}>What to Bring</div>
+            <div className="grid grid-cols-2 gap-2">
+              {['Confirmation email', 'Your SONA ID number (5–6 digits)', 'USC ID card', 'Arrive 10 min early'].map((item, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm" style={{ color: T.green }}><Icon name="Check" size={13} /><span>{item}</span></div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4 p-3 rounded-xl text-center text-sm font-semibold" style={{ backgroundColor: T.cardinalLight, color: T.cardinal }}>
+            Arrive 10 minutes early · Ring silent doorbell if closed · No late admissions
+          </div>
+
+          <Anchor id="sec-loc-maps" />
+          <div className="flex gap-3 mt-5">
+            <a href="https://maps.app.goo.gl/793nVebtYDwC9xEE8" target="_blank" rel="noopener noreferrer"
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white press"
+              style={{ backgroundColor: T.cardinal }}>
+              <Icon name="MapPin" size={14} style={{ color: 'white' }} />Google Maps
+            </a>
+            <a href="https://maps.usc.edu/?id=1928#!m/552631" target="_blank" rel="noopener noreferrer"
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold border-2 press"
+              style={{ borderColor: T.cardinal, color: T.cardinal }}>
+              <Icon name="Map" size={14} style={{ color: T.cardinal }} />USC Campus Map
+            </a>
+          </div>
+        </Card>
+      </div>
+    );
+
+    /* ─── FAQ ─── */
+    const FAQPage = () => {
+      const [openIdx, setOpenIdx] = useState(null);
+      const [search, setSearch] = useState('');
+      const faqs = [
+        { q: "How do I create my SONA account?", a: "Go to marshall-mkt.sona-systems.com, click Request Account, use your USC NetID (not full email). You'll get a confirmation email with a temporary password." },
+        { q: "I can't log in — what should I do?", a: 'Make sure you\'re using your USC NetID (not your student ID number). Try the "Lost your password?" link to reset. If the issue persists, contact the SONA Administrative Team.' },
+        { q: "How many credits do I need?", a: "4.0 total: 1.0 from one in-person lab session + 3.0 from online studies (6 × 0.5 credits each). You must complete both components to earn full credit." },
+        { q: "Can I attend more than one in-person session?", a: "No. You may participate in only ONE in-person session for the entire semester. The system tracks participation — a second session earns no credit." },
+        { q: "What is the in-person session like?", a: "A 60-minute session at VPD LL102 with 16 participants. Arrive 10 min early, phones are collected, you complete multiple studies in order. You'll be assigned a random seat and must stay for the full session." },
+        { q: "What if I miss my in-person session?", a: "You must cancel at least 8 hours in advance through SONA. Repeated no-shows may affect your ability to reserve future spots. If you arrive late and doors are closed, ring the silent doorbell (don't knock) — you'll need to cancel in SONA and register for a future session." },
+        { q: "My credits aren't showing up.", a: "Credits typically post within 24 hours unless otherwise noted on the study page. If longer, contact the SONA Administrative Team with your SONA ID and study name/date." },
+        { q: "Why am I not getting study notifications?", a: "Only registered SONA users receive email notifications. Complete registration and check your USC email (including spam) regularly." },
+        { q: "I had technical issues during a study — what now?", a: "Email mkt.sona@marshall.usc.edu right away with details and a screenshot if possible. Your sign-up won't be penalized as long as you report the issue promptly. We'll respond within 24 hours." },
+        { q: "Studies fill up before I can sign up — what do I do?", a: "Spots are first come, first served across ~1,000 students. We schedule enough total spots for everyone who registers by the deadline. Consider arriving in person to claim any available spots from no-shows." },
+        { q: "I'm under 18 — can I still participate?", a: "Students under 18 by February 6, 2026 complete an alternative research paper instead. See the Eligibility section or contact your instructor." },
+        { q: "What if I missed the registration deadline?", a: "If you don't register by the deadline, you must complete the alternative paper assignment. Contact your instructor for details." },
+        { q: "I need accommodations.", a: "Email Prof. Kristin Diehl (kdiehl@marshall.usc.edu) and copy the SONA Admin Team as early as possible." },
+        { q: "Can I use credits from BUAD 304?", a: "No. BUAD 307 uses a separate research participation program from BUAD 304 — credits do not carry over between courses." },
+        { q: "I have a BUAD 304/497 account — can I use that?", a: "No. BUAD 307 (Marketing) and BUAD 304/497 (OB & Strategy) use completely separate SONA portals with different websites. Make sure you're on marshall-mkt.sona-systems.com (yellow theme) for BUAD 307, not the BUAD 304/497 site (blue theme)." },
+        { q: "How do I join the Slack channel?", a: "Join #buad307-research-participation through USC Marshall's Slack workspace. It's the fastest way to get quick answers about scheduling and credits." },
+      ];
+      const filtered = faqs.filter(f => !search || f.q.toLowerCase().includes(search.toLowerCase()) || f.a.toLowerCase().includes(search.toLowerCase()));
+      return (
+        <div className="space-y-5 stagger">
+          <Section title="Frequently Asked Questions" subtitle="Find answers to common questions below. Can't find what you need? Contact the SONA Administrative Team at mkt.sona@marshall.usc.edu." icon="HelpCircle" />
+
+          <Anchor id="sec-faq-contact" />
+          {/* Who to Contact summary */}
+          <Card>
+            <Lbl>Who Should I Contact?</Lbl>
+            <p className="text-xs mb-3" style={{ color: T.inkMuted }}>Course instructors do not have access to the research study scheduling system.</p>
+            <div className="space-y-2">
+              {[
+                { issue: 'SONA login, credits, scheduling', contact: 'SONA Administrative Team' },
+                { issue: 'Technical issues during study', contact: 'SONA Administrative Team' },
+                { issue: 'Study postings, participation inquiries', contact: 'SONA Administrative Team' },
+                { issue: 'Grade questions, alternative assignment', contact: 'Your Instructor' },
+                { issue: 'Accommodations', contact: 'Professor Diehl + SONA Admin Team' },
+              ].map((r, i) => (
+                <div key={i} className="flex justify-between items-center py-2 text-sm" style={{ borderBottom: i < 4 ? '1px solid ' + T.borderLight : 'none' }}>
+                  <span style={{ color: T.inkSoft }}>{r.issue}</span>
+                  <span className="font-medium text-xs" style={{ color: T.cardinal }}>{r.contact}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <Anchor id="sec-faq-questions" />
+          <Card pad={false}>
+            <div className="p-5 pb-0">
+              <div className="relative mb-4">
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search questions..."
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border text-sm outline-none"
+                  style={{ borderColor: search ? T.cardinal : T.border, backgroundColor: T.warm, boxShadow: search ? '0 0 0 3px ' + T.cardinal + '12' : 'none', transition: 'all 0.2s' }} />
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2"><Icon name="Search" size={15} style={{ color: T.inkMuted }} /></div>
+              </div>
+            </div>
+            <div>
+              {filtered.map((f, i) => (
+                <div key={i} className="border-b last:border-b-0" style={{ borderColor: T.borderLight }}>
+                  <button onClick={() => setOpenIdx(openIdx === i ? null : i)}
+                    className="w-full px-5 py-4 flex items-center justify-between text-left"
+                    style={{ backgroundColor: (openIdx === i || !!search) ? T.cardinalGhost : 'transparent', transition: 'background 0.15s' }}
+                    aria-expanded={openIdx === i || !!search}>
+                    <span className="font-medium text-sm pr-4" style={{ color: (openIdx === i || !!search) ? T.cardinal : T.ink }}>{f.q}</span>
+                    <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0" style={{ backgroundColor: T.warm }}>
+                      <div style={{ transition: 'transform 0.3s var(--ease-spring)', transform: (openIdx === i || !!search) ? 'rotate(180deg)' : 'none' }}>
+                        <Icon name="ChevronDown" size={13} style={{ color: T.inkMuted }} />
+                      </div>
+                    </div>
+                  </button>
+                  {(openIdx === i || !!search) && <div className="px-5 pb-4 text-sm leading-relaxed animate-in" style={{ color: T.inkSoft }}>{f.a}</div>}
+                </div>
+              ))}
+              {filtered.length === 0 && <p className="p-5 text-sm" style={{ color: T.inkMuted }}>No questions match your search.</p>}
+            </div>
+          </Card>
+        </div>
+      );
+    };
+
+    /* ─── Contact ─── */
+    const ContactPage = () => (
+      <div className="space-y-5 stagger">
+        <Section title="Get Help" subtitle="Find the right contact for your question." icon="LifeBuoy" />
+
+        <Anchor id="sec-contact-team" />
+        {/* Primary Contact */}
+        <div className="card overflow-hidden" style={{ borderColor: T.gold, borderWidth: 2 }}>
+          <div className="p-5 sm:p-7">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: T.gold }}>
+                <Icon name="Headphones" size={18} style={{ color: '#fff' }} />
+              </div>
+              <div>
+                <p className="font-bold text-sm" style={{ color: T.goldText }}>Lab Research Participation Team</p>
+                <p className="text-xs" style={{ color: T.inkMuted }}>SONA · Prescreening · Scheduling · Credits</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {[
+                { icon: 'Mail', label: 'Email (Primary)', value: COURSE.email, href: 'mailto:' + COURSE.email, link: true },
+                { icon: 'Phone', label: 'Phone', value: COURSE.phone },
+                { icon: 'Clock', label: 'Response Time', value: '24 hrs weekdays · 48 hrs weekends' },
+                { icon: 'MessageSquare', label: 'Slack', value: COURSE.slack, color: T.blue },
+              ].map((c, i) => (
+                <div key={i} className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: T.white, border: '1px solid ' + T.borderLight }}>
+                  <Icon name={c.icon} size={15} style={{ color: c.color || T.cardinal }} />
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: T.inkLight }}>{c.label}</p>
+                    {c.link ? <a href={c.href} className="text-sm font-medium" style={{ color: T.cardinal }}>{c.value}</a>
+                      : <p className="text-sm" style={{ color: c.color || T.inkSoft }}>{c.value}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <Anchor id="sec-contact-response" />
+        {/* Response Time Table */}
+        <Card>
+          <Lbl>Response Time Expectations</Lbl>
+          <div className="space-y-0">
+            {[
+              { type: 'Email (weekdays)', time: 'Within 24 hours' },
+              { type: 'Email (weekends)', time: 'Within 48 hours' },
+              { type: 'Slack questions', time: '12 hours (weekdays)' },
+              { type: 'Credits posting', time: '24 hours (unless noted on study page)' },
+            ].map((r, i) => (
+              <div key={i} className="flex justify-between py-3 text-sm" style={{ borderBottom: i < 3 ? '1px solid ' + T.borderLight : 'none' }}>
+                <span style={{ color: T.inkSoft }}>{r.type}</span>
+                <span className="font-medium" style={{ color: T.ink }}>{r.time}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        <Anchor id="sec-contact-people" />
+        {/* People */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Card>
+            <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.inkLight }}>Program Lab Manager</div>
+            <div className="text-sm font-semibold mb-0.5" style={{ color: T.ink }}>Brian Huh</div>
+            <a href="mailto:huhb@marshall.usc.edu" className="text-sm" style={{ color: T.cardinal }}>huhb@marshall.usc.edu</a>
+            <p className="text-xs mt-1" style={{ color: T.inkMuted }}>213.821.9746</p>
+          </Card>
+          <Card>
+            <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.inkLight }}>Subject Pool Director</div>
+            <div className="text-sm font-semibold mb-0.5" style={{ color: T.ink }}>Prof. Kristin Diehl</div>
+            <a href="mailto:kdiehl@marshall.usc.edu" className="text-sm" style={{ color: T.cardinal }}>kdiehl@marshall.usc.edu</a>
+            <p className="text-xs mt-1" style={{ color: T.inkMuted }}>Accommodations contact</p>
+          </Card>
+        </div>
+
+        <Anchor id="sec-contact-dropin" />
+        {/* Drop-In */}
+        <Card>
+          <Lbl>Student Drop-In Hours</Lbl>
+          <p className="text-xs mb-3" style={{ color: T.inkMuted }}>No appointment needed. Stop by with questions about registration, credits, or scheduling.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="p-4 rounded-xl" style={{ backgroundColor: T.greenBg, border: '1px solid ' + T.greenBorder }}>
+              <div className="text-sm font-semibold mb-1" style={{ color: T.green }}>Wednesday 2:00–3:00 PM</div>
+              <div className="text-sm" style={{ color: T.green }}>In-person at VPD LL110</div>
+            </div>
+            <div className="p-4 rounded-xl" style={{ backgroundColor: T.blueBg, border: '1px solid ' + T.blueBorder }}>
+              <div className="text-sm font-semibold mb-1" style={{ color: T.blue }}>Thursday 2:00–3:00 PM</div>
+              <div className="text-sm" style={{ color: T.blue }}>Online via <a href="https://usc.zoom.us/j/2138219746" target="_blank" style={{ color: T.blue, textDecoration: 'underline' }}>Zoom</a></div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Slack */}
+        <div className="p-4 rounded-xl flex items-center gap-3" style={{ backgroundColor: T.blueBg, border: '1px solid ' + T.blueBorder }}>
+          <Icon name="MessageSquare" size={16} style={{ color: T.blue, flexShrink: 0 }} />
+          <div>
+            <div className="text-sm font-semibold" style={{ color: T.blue }}>{COURSE.slack}</div>
+            <div className="text-xs" style={{ color: T.blue, opacity: 0.9 }}>View announcements, direct message for assistance. Join through USC Marshall's Slack workspace — it's the fastest way to get quick answers.</div>
+          </div>
+        </div>
+
+        {/* SONA Portal */}
+        <Card>
+          <Lbl>SONA System</Lbl>
+          <p className="text-sm mb-3" style={{ color: T.inkSoft, lineHeight: 1.7 }}>Register and schedule studies at <a href={COURSE.sonaUrl} target="_blank" rel="noopener noreferrer" style={{ color: T.cardinal, fontWeight: 600 }}>marshall-mkt.sona-systems.com</a></p>
+          <SonaBtn full={true} />
+        </Card>
+
+        <Anchor id="sec-contact-alt" />
+        {/* Alternative & Voluntary */}
+        <Accordion title="Alternative Assignment & Voluntary Participation" icon="FileText">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Lbl>Alternative Assignment</Lbl>
+              <p className="text-sm" style={{ color: T.inkSoft, lineHeight: 1.7 }}>If you're still under 18 by the registration deadline, or have USC-approved documentation to participate remotely, you'll complete a research paper instead. Contact your instructor about topics and requirements.</p>
+            </div>
+            <div>
+              <Lbl>Voluntary Participation</Lbl>
+              <p className="text-sm" style={{ color: T.inkSoft, lineHeight: 1.7 }}>Participation is voluntary—you may withdraw from any study at any time without affecting your grade or academic standing. All responses are confidential, never linked to your identity. Each study has been approved by the USC Institutional Review Board (IRB).</p>
+            </div>
+          </div>
+        </Accordion>
+      </div>
+    );
+
+    /* ─── Schedule ─── */
+    const SchedulePage = () => {
+      const schedule = SCHEDULE.items;
+
+      return (
+        <div className="space-y-5 stagger">
+          <Section title="Spring 2026 Study Schedule" subtitle="All studies in chronological order. Complete 6 online + 1 lab session by May 1." icon="CalendarDays" />
+
+          <div className="flex items-center gap-2 px-1 -mt-2">
+            <Icon name="RefreshCw" size={11} style={{ color: T.inkLight }} />
+            <span className="text-xs font-medium" style={{ color: T.inkMuted }}>Last updated: {SCHEDULE.lastUpdated}</span>
+          </div>
+
+          <Anchor id="sec-sched-overview" />
+          {/* Legend + requirement summary */}
+          <div className="flex flex-wrap items-center gap-3 px-1">
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: T.gold }} />
+              <span className="text-xs font-medium" style={{ color: T.inkMuted }}>Online (0.5 cr each, need 6)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: T.cardinal }} />
+              <span className="text-xs font-medium" style={{ color: T.inkMuted }}>In-Person Lab (1.0 cr, need 1)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: T.green, animation: 'breathe 2s infinite' }} />
+              <span className="text-xs font-medium" style={{ color: T.green }}>Available now</span>
+            </div>
+          </div>
+
+          <Anchor id="sec-sched-table" />
+          {/* Unified schedule table */}
+          <Card pad={false}>
+            <div className="divide-y" style={{ borderColor: T.borderLight }}>
+              {/* Table header — desktop only */}
+              <div className="hidden sm:grid px-5 py-3" style={{ gridTemplateColumns: '72px 1fr auto', backgroundColor: T.warm }}>
+                <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: T.inkLight }}>Week</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: T.inkLight }}>Study</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-right" style={{ color: T.inkLight }}>Status</span>
+              </div>
+
+              {(() => {
+                let shownOnlineAnchor = false;
+                let shownLabAnchor = false;
+                return schedule.map((row, i) => {
+                if (row.divider) return (
+                  <div key={i} className="flex items-center justify-center gap-2 py-3 px-4 sm:px-5" style={{ backgroundColor: T.warm }}>
+                    <div className="h-px flex-1" style={{ backgroundColor: T.border }} />
+                    <span className="text-xs font-semibold whitespace-nowrap" style={{ color: T.inkMuted }}>
+                      <Icon name="Palmtree" size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4, color: T.inkLight }} />
+                      {row.divider}
+                    </span>
+                    <div className="h-px flex-1" style={{ backgroundColor: T.border }} />
+                  </div>
+                );
+
+                if (row.deadline) return (
+                  <div key={i} className="flex items-center justify-center gap-2 py-3.5 px-4 sm:px-5" style={{ backgroundColor: T.redBg }}>
+                    <Icon name="AlertTriangle" size={13} style={{ color: T.cardinal, flexShrink: 0 }} />
+                    <span className="text-xs font-bold" style={{ color: T.cardinal }}>{row.deadline}</span>
+                  </div>
+                );
+
+                const isClosed = row.status === 'closed';
+                const isAvailable = row.status === 'available';
+                const isLab = row.type === 'lab';
+                const accentColor = isLab ? T.cardinal : T.gold;
+
+                let anchor = null;
+                if (row.type === 'online' && !shownOnlineAnchor) { shownOnlineAnchor = true; anchor = 'sec-sched-online'; }
+                if (row.type === 'lab' && !shownLabAnchor) { shownLabAnchor = true; anchor = 'sec-sched-lab'; }
+
+                return (
+                  <div key={i}>
+                    {anchor && <Anchor id={anchor} />}
+                    {/* Desktop: 3-column grid */}
+                    <div className="hidden sm:grid items-center px-5 py-3" style={{
+                      gridTemplateColumns: '72px 1fr auto',
+                      opacity: isClosed ? 0.45 : 1,
+                      backgroundColor: isAvailable ? T.greenBg : 'transparent',
+                    }}>
+                      <span className="text-sm font-semibold tabular-nums" style={{ color: isClosed ? T.inkLight : T.ink }}>{row.week}</span>
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-1 h-5 rounded-full flex-shrink-0" style={{ backgroundColor: accentColor, opacity: isClosed ? 0.3 : 1 }} />
+                        <span className="text-sm font-medium truncate" style={{ color: isClosed ? T.inkLight : T.ink }}>{row.item}</span>
+                        {isLab && !isClosed && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold flex-shrink-0" style={{ backgroundColor: T.cardinalLight, color: T.cardinal }}>VPD LL102</span>
+                        )}
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        {isClosed && <span className="text-xs" style={{ color: T.inkLight }}>Closed</span>}
+                        {isAvailable && (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: T.green }}>
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: T.green, animation: 'breathe 2s infinite' }} />Open
+                          </span>
+                        )}
+                        {row.status === 'upcoming' && <span className="text-xs" style={{ color: T.inkMuted }}>Upcoming</span>}
+                      </div>
+                    </div>
+
+                    {/* Mobile: stacked layout */}
+                    <div className="sm:hidden flex items-center gap-3 px-4 py-3" style={{
+                      opacity: isClosed ? 0.45 : 1,
+                      backgroundColor: isAvailable ? T.greenBg : 'transparent',
+                    }}>
+                      <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: accentColor, opacity: isClosed ? 0.3 : 1 }} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium" style={{ color: isClosed ? T.inkLight : T.ink }}>{row.item}</span>
+                          {isAvailable && <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: T.green, animation: 'breathe 2s infinite' }} />}
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs tabular-nums" style={{ color: isClosed ? T.inkLight : T.inkMuted }}>{row.week}</span>
+                          <span className="text-[10px]" style={{ color: T.inkLight }}>·</span>
+                          <span className="text-xs font-medium" style={{ color: isClosed ? T.inkLight : isAvailable ? T.green : T.inkMuted }}>
+                            {isClosed ? 'Closed' : isAvailable ? 'Open' : 'Upcoming'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })})()}
+            </div>
+          </Card>
+
+          {/* Study Details */}
+          <Anchor id="sec-sched-online-info" />
+          <div className="p-4 rounded-xl" style={{ backgroundColor: T.goldBg, border: '1px solid ' + T.goldBorder }}>
+            <div className="flex items-center gap-2 mb-1.5">
+              <div className="w-1 h-4 rounded-full" style={{ backgroundColor: T.gold }} />
+              <div className="text-sm font-bold" style={{ color: T.goldText }}>Online Studies — 0.5 credits each</div>
+            </div>
+            <div className="text-xs" style={{ color: T.goldText, lineHeight: 1.6 }}>Posted to SONA by Wednesday of each week. Sign up and complete immediately — you can't save your spot. 11 available, complete any 6. If you already completed Online Study 1, that credit has been applied.</div>
+          </div>
+
+          <Anchor id="sec-sched-lab-info" />
+          <div className="p-4 rounded-xl" style={{ backgroundColor: T.cardinalLight, border: '1px solid ' + T.cardinal + '20' }}>
+            <div className="flex items-center gap-2 mb-1.5">
+              <div className="w-1 h-4 rounded-full" style={{ backgroundColor: T.cardinal }} />
+              <div className="text-sm font-bold" style={{ color: T.cardinal }}>In-Person Lab Sessions — 1.0 credit</div>
+            </div>
+            <div className="text-xs" style={{ color: T.cardinal, lineHeight: 1.6 }}>Sign-up slots posted on SONA by the Friday before each date. 60 min at VPD LL102. Attend exactly one session. Earlier sessions tend to have greater availability.</div>
+          </div>
+
+          <Anchor id="sec-sched-reminders" />
+          {/* Reminders */}
+          <Card>
+            <div className="space-y-2.5">
+              <Alert type="warning" icon="AlertTriangle" compact>Complete as many studies as possible <strong>before Spring Break</strong>. Don't rush in the final weeks.</Alert>
+              <Alert type="error" icon="Clock" compact>All <strong>4.0 credits must be completed by May 1, 2026</strong>. No extensions will be granted.</Alert>
+            </div>
+            <p className="text-xs mt-4" style={{ color: T.inkMuted, lineHeight: 1.6 }}>We announce every new study on <strong style={{ color: T.ink }}>#buad307-research-participation</strong> Slack — join and enable notifications. Spots are first-come, first-served across ~1,000 students. If you already completed Online Study 1, that credit has been applied.</p>
+          </Card>
+        </div>
+      );
+    };
+
+    /* ═══════════════════════════ APP SHELL ═══════════════════════════ */
+    function App() {
+      const [page, setPage] = useState('home');
+      const [drawer, setDrawer] = useState(false);
+      const [searchOpen, setSearchOpen] = useState(false);
+      const [activeSection, setActiveSection] = useState(null);
+
+      // Use shared schedule data
+      const nextOnline = SCHED_NEXT_ONLINE;
+      const nextLab = SCHED_NEXT_LAB;
+
+      const go = useCallback(id => { setPage(id); setDrawer(false); setActiveSection(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }, []);
+
+      // Hash routing
+      useEffect(() => { const hash = window.location.hash.slice(1); if (hash && ['home', 'credits', 'schedule', 'setup', 'location', 'faq', 'contact'].includes(hash)) setPage(hash) }, []);
+      useEffect(() => { if (page) window.history.replaceState(null, '', '#' + page) }, [page]);
+
+      // Keyboard shortcuts
+      useEffect(() => { const h = e => { if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setSearchOpen(o => !o) } }; document.addEventListener('keydown', h); return () => document.removeEventListener('keydown', h) }, []);
+
+      // Sub-navigation sections per page
+      const subNav = {
+        home: [
+          { id: 'sec-about', label: 'About the Program' },
+          { id: 'sec-steps', label: 'Getting Started' },
+          { id: 'sec-schedule-cta', label: 'Coming Up Next' },
+          { id: 'sec-credits-req', label: 'Credit Requirements' },
+          { id: 'sec-dates', label: 'Key Dates' },
+          { id: 'sec-quickref', label: 'Quick Reference' },
+          { id: 'sec-eligibility', label: 'Eligibility' },
+          { id: 'sec-tips', label: 'Tips for Success' },
+        ],
+        setup: [
+          { id: 'sec-registration', label: 'SONA Registration' },
+          { id: 'sec-prescreening', label: 'Prescreening' },
+          { id: 'sec-missed', label: 'Missed Deadline?' },
+        ],
+        credits: [
+          { id: 'sec-overview', label: 'Overview' },
+          { id: 'sec-inperson', label: 'In-Person Session' },
+          { id: 'sec-online', label: 'Online Studies' },
+          { id: 'sec-invitations', label: 'How Invitations Work' },
+          { id: 'sec-cancellations', label: 'Cancellations' },
+          { id: 'sec-comparison', label: 'Comparison Table' },
+        ],
+        schedule: [
+          { id: 'sec-sched-overview', label: 'Legend' },
+          { id: 'sec-sched-online', label: 'Online Studies' },
+          { id: 'sec-sched-lab', label: 'Lab Sessions' },
+          { id: 'sec-sched-online-info', label: 'Online Details' },
+          { id: 'sec-sched-lab-info', label: 'Lab Details' },
+          { id: 'sec-sched-reminders', label: 'Reminders' },
+        ],
+        location: [
+          { id: 'sec-loc-directions', label: 'Directions' },
+          { id: 'sec-loc-floorplan', label: 'Floor Plan' },
+          { id: 'sec-loc-bring', label: 'What to Bring' },
+          { id: 'sec-loc-maps', label: 'Maps' },
+        ],
+        faq: [
+          { id: 'sec-faq-contact', label: 'Who to Contact' },
+          { id: 'sec-faq-questions', label: 'Questions' },
+        ],
+        contact: [
+          { id: 'sec-contact-team', label: 'Contact Team' },
+          { id: 'sec-contact-response', label: 'Response Times' },
+          { id: 'sec-contact-people', label: 'People' },
+          { id: 'sec-contact-dropin', label: 'Drop-In Hours' },
+          { id: 'sec-contact-alt', label: 'Alternative Assignment' },
+        ],
+      };
+
+      // Scroll to section with header offset
+      const scrollToSection = useCallback((sectionId) => {
+        const el = document.getElementById(sectionId);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, []);
+
+      // Track active section
+      useEffect(() => {
+        const subs = subNav[page] || [];
+        if (!subs.length) return;
+        const observer = new IntersectionObserver(
+          (entries) => {
+            const visible = entries.filter(e => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+            if (visible.length > 0) setActiveSection(visible[0].target.id);
+          },
+          { rootMargin: '-80px 0px -60% 0px', threshold: 0.1 }
+        );
+        const timeout = setTimeout(() => {
+          subs.forEach(s => { const el = document.getElementById(s.id); if (el) observer.observe(el) });
+        }, 200);
+        return () => { clearTimeout(timeout); observer.disconnect() };
+      }, [page]);
+
+      const nav = [
+        { id: 'home', icon: 'LayoutDashboard', label: 'Dashboard' },
+        { id: 'schedule', icon: 'CalendarDays', label: 'Schedule' },
+        { id: 'setup', icon: 'Settings', label: 'Account Setup', step: 1 },
+        { id: 'credits', icon: 'Award', label: 'Earn Credits', step: 2 },
+        { id: 'location', icon: 'MapPin', label: 'Lab Location' },
+        { id: 'faq', icon: 'HelpCircle', label: 'FAQ' },
+        { id: 'contact', icon: 'LifeBuoy', label: 'Get Help' },
+      ];
+      const mobileNav = [
+        { id: 'home', icon: 'LayoutDashboard', label: 'Home' },
+        { id: 'schedule', icon: 'CalendarDays', label: 'Schedule' },
+        { id: 'credits', icon: 'Award', label: 'Credits' },
+        { id: 'faq', icon: 'HelpCircle', label: 'FAQ' },
+        { id: 'contact', icon: 'LifeBuoy', label: 'Help' },
+      ];
+      const pages = { home: () => <Dashboard go={go} nextOnline={nextOnline} nextLab={nextLab} />, credits: EarnCredits, schedule: SchedulePage, setup: SetupPage, location: LabLocation, faq: FAQPage, contact: ContactPage };
+      const Page = pages[page] || (() => <Dashboard go={go} nextOnline={nextOnline} nextLab={nextLab} />);
+
+      return (
+        <div className="min-h-screen flex flex-col" style={{ backgroundColor: T.bg }}>
+          <ScrollProgress />
+
+          {/* ─── Header ─── */}
+          <header className="sticky top-0 z-40 print-hide" style={{ height: 'var(--header-h)' }}>
+            <div className="h-full frosted" style={{ background: 'linear-gradient(135deg, rgba(153,0,0,0.97), rgba(92,0,0,0.97))', borderBottom: '1px solid rgba(153,0,0,0.3)' }}>
+              <div className="px-4 sm:px-6 h-full max-w-screen-xl mx-auto flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <button onClick={() => setDrawer(!drawer)} className="lg:hidden p-2 rounded-lg press" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }} aria-label="Menu">
+                    <Icon name={drawer ? 'X' : 'Menu'} size={20} style={{ color: 'white' }} />
+                  </button>
+                  <button onClick={() => go('home')} className="flex items-center gap-3 press">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <Icon name="GraduationCap" size={20} style={{ color: '#fff' }} />
+                    </div>
+                    <div className="hidden sm:block">
+                      <p className="text-[15px] font-bold text-white" style={{ fontFamily: '"Source Serif 4", Georgia, serif', lineHeight: 1.2 }}>USC Marshall</p>
+                      <p className="text-[11px] text-white/45">Behavioral Research Lab</p>
+                    </div>
+                  </button>
+                  <div className="h-6 w-px mx-2 hidden md:block" style={{ backgroundColor: 'rgba(255,255,255,0.12)' }} />
+                  <span className="hidden md:inline-flex items-center gap-2 text-xs font-semibold text-white/70 px-2.5 py-1 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: T.gold }} />BUAD 307 · Marketing Fundamentals
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button onClick={() => go('schedule')}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-white press"
+                    style={{ backgroundColor: T.gold, boxShadow: '0 1px 3px rgba(168,128,0,0.3)' }}>
+                    <Icon name="CalendarDays" size={13} style={{ color: '#fff' }} />Schedule
+                  </button>
+                  <button onClick={() => setSearchOpen(true)} className="flex items-center gap-2 px-2.5 py-2 rounded-lg press" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }} aria-label="Search">
+                    <Icon name="Search" size={15} style={{ color: 'rgba(255,255,255,0.6)' }} />
+                    <span className="hidden sm:inline text-xs text-white/35">Search</span>
+                    <span className="hidden sm:inline kbd">⌘K</span>
+                  </button>
+                  <a href={COURSE.sonaUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-white/80 press"
+                    style={{ backgroundColor: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                    <Icon name="ExternalLink" size={13} style={{ color: 'rgba(255,255,255,0.6)' }} />SONA
+                  </a>
+                  <a href={COURSE.handoutUrl} target="_blank" rel="noopener noreferrer"
+                    className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-white/70 press"
+                    style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
+                    <Icon name="FileText" size={13} style={{ color: 'rgba(255,255,255,0.5)' }} />PDF
+                  </a>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* ─── Next Study Banner ─── */}
+          <div className="sticky z-30 print-hide" style={{ top: 'var(--header-h)' }}>
+            <button onClick={() => go('schedule')} className="w-full press"
+              style={{ background: 'linear-gradient(90deg, ' + T.goldBg + ' 0%, #FFF9E6 50%, ' + T.goldBg + ' 100%)', borderBottom: '1px solid ' + T.goldBorder }}>
+              <div className="px-4 sm:px-6 max-w-screen-xl mx-auto flex items-center justify-center gap-3 py-2">
+                {nextOnline && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: nextOnline.status === 'available' ? T.green : T.gold, animation: nextOnline.status === 'available' ? 'breathe 2s infinite' : 'none' }} />
+                    <span className="text-xs font-semibold" style={{ color: T.goldText }}>
+                      {nextOnline.status === 'available' ? <><strong style={{ color: T.green }}>{nextOnline.item}</strong> — spots remaining</> : <><strong>{nextOnline.item}</strong> — Week of {nextOnline.week}</>}
+                    </span>
+                  </div>
+                )}
+                {nextOnline && nextLab && <div className="w-px h-3 hidden sm:block" style={{ backgroundColor: T.goldBorder }} />}
+                {nextLab && (
+                  <div className="hidden sm:flex items-center gap-2">
+                    <Icon name="Building" size={12} style={{ color: T.cardinal }} />
+                    <span className="text-xs font-semibold" style={{ color: T.cardinal }}>
+                      Next Lab — {nextLab.week}
+                    </span>
+                  </div>
+                )}
+                <Icon name="ArrowRight" size={12} style={{ color: T.gold, flexShrink: 0 }} />
+              </div>
+            </button>
+          </div>
+
+          <div className="flex flex-1 max-w-screen-xl mx-auto w-full">
+            {/* ─── Sidebar ─── */}
+            <aside className="hidden lg:flex flex-col w-56 flex-shrink-0 border-r print-hide sticky self-start overflow-y-auto no-scrollbar"
+              style={{ top: 'var(--nav-top)', maxHeight: 'calc(100vh - var(--nav-top))', borderColor: T.border, backgroundColor: T.white }}>
+              <nav className="p-3 flex-1" aria-label="Main navigation">
+                {nav.map((item, idx) => {
+                  const isStep = !!item.step;
+                  const stepItems = nav.filter(n => n.step);
+                  const stepIdx = stepItems.indexOf(item);
+                  const isLastStep = stepIdx === stepItems.length - 1;
+                  const isActive = page === item.id;
+                  const subs = isActive ? (subNav[item.id] || []) : [];
+                  return (
+                    <div key={item.id}>
+                      {!isStep ? (
+                        <div className={idx > 0 && nav[idx - 1]?.step ? 'mt-2 pt-2 border-t' : ''} style={{ borderColor: T.borderLight }}>
+                          <button onClick={() => go(item.id)}
+                            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-medium"
+                            style={{ backgroundColor: isActive ? T.cardinalLight : 'transparent', color: isActive ? T.cardinal : T.inkMuted, transition: 'all 0.2s' }}>
+                            <Icon name={item.icon} size={16} style={{ color: isActive ? T.cardinal : T.inkMuted }} />{item.label}
+                          </button>
+                          {subs.length > 0 && (
+                            <div className="ml-6 pl-3 mt-0.5 mb-1 animate-in" style={{ borderLeft: '1.5px solid ' + T.cardinal + '20' }}>
+                              {subs.map(sub => (
+                                <button key={sub.id} onClick={() => scrollToSection(sub.id)}
+                                  className="w-full text-left px-2.5 py-1.5 rounded-md text-[12px] block"
+                                  style={{
+                                    color: activeSection === sub.id ? T.cardinal : T.inkMuted,
+                                    fontWeight: activeSection === sub.id ? 600 : 400,
+                                    backgroundColor: activeSection === sub.id ? T.cardinal + '08' : 'transparent',
+                                    transition: 'all 0.15s'
+                                  }}>
+                                  {sub.label}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex" style={{ marginLeft: 6 }}>
+                          <div className="flex flex-col items-center" style={{ width: 26, flexShrink: 0 }}>
+                            <div className="flex items-center justify-center rounded-full text-[10px] font-bold"
+                              style={{
+                                width: 22, height: 22, marginTop: 9,
+                                backgroundColor: isActive ? T.cardinal : T.warm,
+                                color: isActive ? '#fff' : T.inkMuted,
+                                border: isActive ? 'none' : '1.5px solid ' + T.border,
+                                boxShadow: isActive ? '0 2px 8px rgba(153,0,0,0.3)' : 'none', transition: 'all 0.25s'
+                              }}>
+                              {item.step}
+                            </div>
+                            {!isLastStep && <div style={{ width: 1.5, flex: 1, minHeight: subs.length > 0 ? 2 : 6, backgroundColor: T.border, margin: '2px 0' }} />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <button onClick={() => go(item.id)}
+                              className="w-full text-left px-2 py-2 rounded-lg text-[13px] font-medium"
+                              style={{ backgroundColor: isActive ? T.cardinalGhost : 'transparent', color: isActive ? T.cardinal : T.inkMuted, transition: 'all 0.2s' }}>
+                              <span className="block truncate">{item.label}</span>
+                            </button>
+                            {subs.length > 0 && (
+                              <div className="ml-1 pl-2.5 mb-1 animate-in" style={{ borderLeft: '1.5px solid ' + T.cardinal + '20' }}>
+                                {subs.map(sub => (
+                                  <button key={sub.id} onClick={() => scrollToSection(sub.id)}
+                                    className="w-full text-left px-2 py-1.5 rounded-md text-[12px] block"
+                                    style={{
+                                      color: activeSection === sub.id ? T.cardinal : T.inkMuted,
+                                      fontWeight: activeSection === sub.id ? 600 : 400,
+                                      backgroundColor: activeSection === sub.id ? T.cardinal + '08' : 'transparent',
+                                      transition: 'all 0.15s'
+                                    }}>
+                                    {sub.label}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </nav>
+              {/* Sidebar quick links */}
+              <div className="p-3 border-t" style={{ borderColor: T.borderLight }}>
+                <div className="space-y-1">
+                  {[
+                    { icon: 'ExternalLink', label: 'SONA Portal', href: COURSE.sonaUrl, external: true, bg: T.goldBg, color: T.goldText },
+                    { icon: 'Mail', label: COURSE.email, href: 'mailto:' + COURSE.email, bg: T.cardinalLight, color: T.cardinal },
+                    { icon: 'Video', label: 'Drop-in Thu 2–3', href: 'https://usc.zoom.us/j/2138219746', external: true, bg: T.amberBg, color: T.amber },
+                    { icon: 'Phone', label: COURSE.phone, href: 'tel:2138219752', bg: T.warm, color: T.inkMuted },
+                  ].map((c, i) => (
+                    <a key={i} href={c.href} target={c.external ? '_blank' : undefined} rel={c.external ? 'noopener noreferrer' : undefined}
+                      className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px]"
+                      style={{ backgroundColor: c.bg, color: c.color, transition: 'opacity 0.15s' }}
+                      onMouseOver={e => e.currentTarget.style.opacity = '0.8'}
+                      onMouseOut={e => e.currentTarget.style.opacity = '1'}>
+                      <Icon name={c.icon} size={11} style={{ color: c.color, flexShrink: 0 }} /><span className="font-medium truncate">{c.label}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </aside>
+
+            {/* ─── Main Content ─── */}
+            <main id="main-content" className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-6 lg:py-8" style={{ maxWidth: 820 }}>
+              {page !== 'home' && <Breadcrumbs active={page} go={go} />}
+              <div key={page} className="animate-up"><Page /></div>
+            </main>
+          </div>
+
+          {/* ─── Mobile Drawer ─── */}
+          {drawer && (
+            <div className="fixed inset-0 z-50 lg:hidden" onClick={() => setDrawer(false)}>
+              <div className="absolute inset-0 frosted" style={{ backgroundColor: 'rgba(0,0,0,0.35)' }} />
+              <div className="absolute top-0 left-0 bottom-0 w-72 shadow-2xl" style={{ backgroundColor: T.white, animation: 'slideIn 0.3s var(--ease-spring) both' }} onClick={e => e.stopPropagation()}>
+                <div className="p-5 pb-4 border-b" style={{ borderColor: T.borderLight, background: 'linear-gradient(180deg, ' + T.warm + ', ' + T.white + ')' }}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-base font-bold" style={{ fontFamily: '"Source Serif 4", Georgia, serif' }}>USC Marshall</div>
+                      <div className="text-xs" style={{ color: T.inkMuted }}>BUAD 307 · Research Participation</div>
+                    </div>
+                    <button onClick={() => setDrawer(false)} className="p-1.5 rounded-lg press" style={{ backgroundColor: T.warm }}>
+                      <Icon name="X" size={18} style={{ color: T.inkMuted }} />
+                    </button>
+                  </div>
+                </div>
+                <div className="p-3 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 160px)' }}>
+                  {nav.map((item, i) => {
+                    const isActive = page === item.id;
+                    const subs = isActive ? (subNav[item.id] || []) : [];
+                    return (
+                      <div key={item.id}>
+                        <button onClick={() => go(item.id)}
+                          className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm mb-0.5 animate-right"
+                          style={{ backgroundColor: isActive ? T.cardinalLight : 'transparent', color: isActive ? T.cardinal : T.inkSoft, animationDelay: (i * 0.03) + 's' }}>
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                            style={{ backgroundColor: isActive ? T.cardinal + '15' : T.warm }}>
+                            <Icon name={item.icon} size={16} style={{ color: isActive ? T.cardinal : T.inkMuted }} />
+                          </div>
+                          <span className="font-medium">{item.label}</span>
+                          {item.step && <span className="ml-auto text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center"
+                            style={{ backgroundColor: isActive ? T.cardinal : T.stone, color: isActive ? '#fff' : T.inkLight }}>{item.step}</span>}
+                        </button>
+                        {subs.length > 0 && (
+                          <div className="ml-10 pl-3 mb-2 animate-in" style={{ borderLeft: '1.5px solid ' + T.cardinal + '20' }}>
+                            {subs.map(sub => (
+                              <button key={sub.id} onClick={() => { setDrawer(false); setTimeout(() => scrollToSection(sub.id), 100) }}
+                                className="w-full text-left px-2.5 py-1.5 rounded-md text-[12px] block"
+                                style={{
+                                  color: activeSection === sub.id ? T.cardinal : T.inkMuted,
+                                  fontWeight: activeSection === sub.id ? 600 : 400,
+                                  transition: 'all 0.15s'
+                                }}>
+                                {sub.label}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="p-3 mt-auto border-t" style={{ borderColor: T.borderLight }}>
+                  <SonaBtn full={true} size="sm" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ─── Mobile Bottom Nav ─── */}
+          <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t print-hide frosted safe-bottom"
+            style={{ borderColor: T.border, backgroundColor: 'rgba(255,255,255,0.92)' }} aria-label="Mobile navigation">
+            <div className="grid grid-cols-5 py-1.5 px-2">
+              {mobileNav.map(item => {
+                const isActive = page === item.id;
+                return (
+                  <button key={item.id} onClick={() => go(item.id)}
+                    className="flex flex-col items-center justify-center gap-1 py-2 rounded-xl press">
+                    <Icon name={item.icon} size={20} style={{ color: isActive ? T.cardinal : T.inkLight, transition: 'color 0.2s' }} />
+                    <span style={{ fontSize: 10, fontWeight: isActive ? 700 : 500, color: isActive ? T.cardinal : T.inkLight, transition: 'color 0.2s' }}>{item.label}</span>
+                    <div style={{ width: isActive ? 16 : 0, height: 2.5, borderRadius: 2, backgroundColor: T.cardinal, transition: 'width 0.3s var(--ease-spring)', marginTop: 1 }} />
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
+
+          {/* ─── Footer ─── */}
+          <footer className="border-t print-hide" style={{ borderColor: T.borderLight, backgroundColor: T.white }}>
+            <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+              {/* Main footer content */}
+              <div className="py-8 pb-6 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
+                {/* Branding */}
+                <div>
+                  <div className="flex items-center gap-2.5 mb-3">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: T.cardinal }}>
+                      <Icon name="GraduationCap" size={16} style={{ color: '#fff' }} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold" style={{ fontFamily: '"Source Serif 4", Georgia, serif', color: T.ink }}>USC Marshall</p>
+                      <p className="text-[10px]" style={{ color: T.inkMuted }}>Behavioral Research Lab</p>
+                    </div>
+                  </div>
+                  <p className="text-xs leading-relaxed" style={{ color: T.inkMuted }}>
+                    BUAD 307 · Marketing Fundamentals<br />
+                    Spring 2026 Research Participation Program
+                  </p>
+                </div>
+
+                {/* Quick Links */}
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: T.inkLight }}>Resources</div>
+                  <div className="space-y-2">
+                    {[
+                      { label: 'SONA Portal', href: COURSE.sonaUrl, icon: 'ExternalLink' },
+                      { label: 'Download Handout (PDF)', href: COURSE.handoutUrl, icon: 'FileText' },
+                      { label: 'Slack Channel', href: '#', icon: 'MessageSquare', onClick: () => go('contact') },
+                      { label: 'Lab Location & Directions', href: '#', icon: 'MapPin', onClick: () => go('location') },
+                    ].map((link, i) => (
+                      <a key={i} href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined}
+                        rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                        onClick={link.onClick ? (e) => { e.preventDefault(); link.onClick() } : undefined}
+                        className="flex items-center gap-2 text-xs" style={{ color: T.inkMuted, transition: 'color 0.15s' }}
+                        onMouseOver={e => e.currentTarget.style.color = T.cardinal}
+                        onMouseOut={e => e.currentTarget.style.color = T.inkMuted}>
+                        <Icon name={link.icon} size={11} style={{ flexShrink: 0 }} />{link.label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Contact */}
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: T.inkLight }}>Contact</div>
+                  <div className="space-y-2">
+                    <a href={'mailto:' + COURSE.email} className="flex items-center gap-2 text-xs" style={{ color: T.inkMuted }}
+                      onMouseOver={e => e.currentTarget.style.color = T.cardinal}
+                      onMouseOut={e => e.currentTarget.style.color = T.inkMuted}>
+                      <Icon name="Mail" size={11} style={{ flexShrink: 0 }} />{COURSE.email}
+                    </a>
+                    <a href="tel:2138219752" className="flex items-center gap-2 text-xs" style={{ color: T.inkMuted }}
+                      onMouseOver={e => e.currentTarget.style.color = T.cardinal}
+                      onMouseOut={e => e.currentTarget.style.color = T.inkMuted}>
+                      <Icon name="Phone" size={11} style={{ flexShrink: 0 }} />{COURSE.phone}
+                    </a>
+                    <div className="flex items-center gap-2 text-xs" style={{ color: T.inkMuted }}>
+                      <Icon name="Clock" size={11} style={{ flexShrink: 0 }} />Drop-in: Wed 2–3 PM · Thu 2–3 PM (Zoom)
+                    </div>
+                    <div className="flex items-center gap-2 text-xs" style={{ color: T.inkMuted }}>
+                      <Icon name="MapPin" size={11} style={{ flexShrink: 0 }} />VPD Building LL102, 635 Downey Way
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom bar */}
+              <div className="border-t py-4 pb-24 lg:pb-4 flex flex-col sm:flex-row items-center justify-between gap-2" style={{ borderColor: T.borderLight }}>
+                <p className="text-[11px]" style={{ color: T.inkLight }}>© 2026 University of Southern California · Marshall School of Business</p>
+                <p className="text-[11px]" style={{ color: T.inkLight }}>Schedule updated {SCHEDULE.lastUpdated}</p>
+              </div>
+            </div>
+          </footer>
+
+          <SearchOverlay isOpen={searchOpen} onClose={() => setSearchOpen(false)} go={go} />
+          <HelpChatBot />
+          <BackToTop />
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
