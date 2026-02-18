@@ -106,6 +106,11 @@
 
     /* Keyboard badge */
     .kbd { display: inline-flex; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); line-height: 1 }
+
+    /* Admin */
+    .admin-input { width: 100%; padding: 9px 12px; border-radius: 10px; border: 1.5px solid #D4D4D0; font-size: 13px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; background: #F9F9F6 }
+    .admin-input:focus { border-color: #990000; box-shadow: 0 0 0 3px rgba(153,0,0,0.08) }
+    .admin-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px }
   </style>
 </head>
 <body class="grain">
@@ -192,6 +197,215 @@
     const SCHED_STUDIES = SCHEDULE.items.filter(s => s.type);
     const SCHED_NEXT_ONLINE = SCHED_STUDIES.find(s => s.type === 'online' && s.status !== 'closed');
     const SCHED_NEXT_LAB = SCHED_STUDIES.find(s => s.type === 'lab' && s.status !== 'closed');
+
+    /* ═══ Admin Config ═══ */
+    const DEFAULT_PROFILES = [
+      { id: 'admin-1', name: 'Admin', role: 'admin', pw: 'marshall307' },
+    ];
+
+    /* ═══ Admin Profiles Hook ═══ */
+    const useAdminAuth = () => {
+      const [profiles, setProfiles] = useState(DEFAULT_PROFILES);
+      const [loaded, setLoaded] = useState(false);
+
+      const load = useCallback(async () => {
+        try {
+          const r = await window.storage.get('buad307-admin-profiles');
+          if (r && r.value) {
+            const d = JSON.parse(r.value);
+            if (d.length > 0) setProfiles(d);
+          }
+        } catch (e) { console.log('Using default profiles') }
+        setLoaded(true);
+      }, []);
+
+      useEffect(() => { load() }, [load]);
+
+      const persist = useCallback(async (data) => {
+        try { await window.storage.set('buad307-admin-profiles', JSON.stringify(data)) }
+        catch (e) { console.error('Profiles save error:', e) }
+      }, []);
+
+      const addProfile = useCallback((profile) => {
+        const p = { ...profile, id: 'admin-' + Date.now() };
+        const next = [...profiles, p];
+        setProfiles(next); persist(next);
+        return p;
+      }, [profiles, persist]);
+
+      const updateProfile = useCallback((id, updates) => {
+        const next = profiles.map(p => p.id === id ? { ...p, ...updates } : p);
+        setProfiles(next); persist(next);
+      }, [profiles, persist]);
+
+      const removeProfile = useCallback((id) => {
+        if (profiles.length <= 1) return; // keep at least one
+        const next = profiles.filter(p => p.id !== id);
+        setProfiles(next); persist(next);
+      }, [profiles, persist]);
+
+      const authenticate = useCallback((name, password) => {
+        return profiles.find(p => p.name.toLowerCase() === name.toLowerCase() && p.pw === password) || null;
+      }, [profiles]);
+
+      return { profiles, loaded, addProfile, updateProfile, removeProfile, authenticate };
+    };
+
+    /* ═══ Audit Log Hook ═══ */
+    const useAuditLog = () => {
+      const [log, setLog] = useState([]);
+      const [loaded, setLoaded] = useState(false);
+
+      const load = useCallback(async () => {
+        try {
+          const r = await window.storage.get('buad307-audit-log');
+          if (r && r.value) setLog(JSON.parse(r.value));
+        } catch (e) { console.log('No audit log yet') }
+        setLoaded(true);
+      }, []);
+
+      useEffect(() => { load() }, [load]);
+
+      const record = useCallback(async (action, detail, userName) => {
+        const entry = {
+          id: Date.now().toString(),
+          action,
+          detail,
+          user: userName || 'Unknown',
+          ts: new Date().toISOString(),
+        };
+        const next = [entry, ...log].slice(0, 200); // keep last 200 entries
+        setLog(next);
+        try { await window.storage.set('buad307-audit-log', JSON.stringify(next)) }
+        catch (e) { console.error('Audit log error:', e) }
+      }, [log]);
+
+      const clearLog = useCallback(async () => {
+        setLog([]);
+        try { await window.storage.set('buad307-audit-log', JSON.stringify([])) }
+        catch (e) {}
+      }, []);
+
+      return { log, loaded, record, clearLog };
+    };
+
+    /* ═══ Persistent Schedule Hook ═══ */
+    const useSchedule = () => {
+      const [items, setItems] = useState(SCHEDULE.items);
+      const [lastUpdated, setLastUpdated] = useState(SCHEDULE.lastUpdated);
+      const [loaded, setLoaded] = useState(false);
+
+      const load = useCallback(async () => {
+        try {
+          const result = await window.storage.get('buad307-schedule');
+          if (result && result.value) {
+            const data = JSON.parse(result.value);
+            if (data.items) setItems(data.items);
+            if (data.lastUpdated) setLastUpdated(data.lastUpdated);
+          }
+        } catch (e) { console.log('Using default schedule') }
+        setLoaded(true);
+      }, []);
+
+      useEffect(() => { load() }, [load]);
+
+      const save = useCallback(async (newItems, newDate) => {
+        const d = newDate || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        setItems(newItems);
+        setLastUpdated(d);
+        try { await window.storage.set('buad307-schedule', JSON.stringify({ items: newItems, lastUpdated: d })) }
+        catch (e) { console.error('Storage error:', e) }
+      }, []);
+
+      const updateItem = useCallback((index, updates) => {
+        const next = items.map((it, i) => i === index ? { ...it, ...updates } : it);
+        save(next);
+      }, [items, save]);
+
+      const derived = useMemo(() => {
+        const studies = items.filter(s => s.type);
+        return {
+          studies,
+          nextOnline: studies.find(s => s.type === 'online' && s.status !== 'closed'),
+          nextLab: studies.find(s => s.type === 'lab' && s.status !== 'closed'),
+          activeCount: studies.filter(s => s.status === 'available').length,
+          closedCount: studies.filter(s => s.status === 'closed').length,
+          upcomingCount: studies.filter(s => s.status === 'upcoming').length,
+          onlineItems: items.map((it, i) => ({ ...it, _idx: i })).filter(it => it.type === 'online'),
+          labItems: items.map((it, i) => ({ ...it, _idx: i })).filter(it => it.type === 'lab'),
+        };
+      }, [items]);
+
+      return { items, lastUpdated, loaded, updateItem, save, setItems, ...derived };
+    };
+
+    /* ═══ Announcements & Alerts Hook ═══ */
+    const useAnnouncements = () => {
+      const [emails, setEmails] = useState([]);
+      const [alerts, setAlerts] = useState([]);
+      const [popup, setPopup] = useState({ enabled: false, title: '', body: '', id: '' });
+      const [loaded, setLoaded] = useState(false);
+
+      const load = useCallback(async () => {
+        try {
+          const r = await window.storage.get('buad307-announcements');
+          if (r && r.value) {
+            const d = JSON.parse(r.value);
+            if (d.emails) setEmails(d.emails);
+            if (d.alerts) setAlerts(d.alerts);
+            if (d.popup) setPopup(d.popup);
+          }
+        } catch (e) { console.log('No announcements yet') }
+        setLoaded(true);
+      }, []);
+
+      useEffect(() => { load() }, [load]);
+
+      const persist = useCallback(async (data) => {
+        try { await window.storage.set('buad307-announcements', JSON.stringify(data)) }
+        catch (e) { console.error('Announcements save error:', e) }
+      }, []);
+
+      const addEmail = useCallback((email) => {
+        const e = { ...email, id: Date.now().toString(), createdAt: new Date().toISOString() };
+        const next = [e, ...emails];
+        setEmails(next);
+        persist({ emails: next, alerts, popup });
+      }, [emails, alerts, popup, persist]);
+
+      const removeEmail = useCallback((id) => {
+        const next = emails.filter(e => e.id !== id);
+        setEmails(next);
+        persist({ emails: next, alerts, popup });
+      }, [emails, alerts, popup, persist]);
+
+      const updateEmail = useCallback((id, updates) => {
+        const next = emails.map(e => e.id === id ? { ...e, ...updates } : e);
+        setEmails(next);
+        persist({ emails: next, alerts, popup });
+      }, [emails, alerts, popup, persist]);
+
+      const addAlert = useCallback((alert) => {
+        const a = { ...alert, id: Date.now().toString(), createdAt: new Date().toISOString() };
+        const next = [a, ...alerts];
+        setAlerts(next);
+        persist({ emails, alerts: next, popup });
+      }, [emails, alerts, popup, persist]);
+
+      const removeAlert = useCallback((id) => {
+        const next = alerts.filter(a => a.id !== id);
+        setAlerts(next);
+        persist({ emails, alerts: next, popup });
+      }, [emails, alerts, popup, persist]);
+
+      const updatePopup = useCallback((updates) => {
+        const next = { ...popup, ...updates };
+        setPopup(next);
+        persist({ emails, alerts, popup: next });
+      }, [emails, alerts, popup, persist]);
+
+      return { emails, alerts, popup, loaded, addEmail, removeEmail, updateEmail, addAlert, removeAlert, updatePopup };
+    };
 
     /* ═══ Shared Components ═══ */
 
@@ -625,8 +839,35 @@ CONTACTS:
     );
 
     /* ─── Dashboard ─── */
-    const Dashboard = ({ go, nextOnline, nextLab }) => (
+    const Dashboard = ({ go, nextOnline, nextLab, alerts }) => (
       <div className="space-y-6 stagger">
+        {/* ─── Urgent Alerts ─── */}
+        {alerts && alerts.length > 0 && (
+          <div className="space-y-2 animate-up">
+            {alerts.map(alert => {
+              const styles = {
+                error: { bg: T.redBg, border: T.redBorder, color: T.cardinal, icon: 'AlertTriangle' },
+                warning: { bg: T.amberBg, border: T.amberBorder, color: '#78350F', icon: 'AlertTriangle' },
+                info: { bg: T.blueBg, border: T.blueBorder, color: T.blue, icon: 'Info' },
+                success: { bg: T.greenBg, border: T.greenBorder, color: T.green, icon: 'CheckCircle' },
+              }[alert.type] || { bg: T.amberBg, border: T.amberBorder, color: '#78350F', icon: 'AlertTriangle' };
+              return (
+                <div key={alert.id} className="flex items-start gap-3 p-4 rounded-2xl"
+                  style={{ backgroundColor: styles.bg, border: '1.5px solid ' + styles.border }}>
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+                    style={{ backgroundColor: styles.color + '15' }}>
+                    <Icon name={styles.icon} size={16} style={{ color: styles.color }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold" style={{ color: styles.color }}>{alert.title}</div>
+                    {alert.body && <div className="text-sm mt-0.5" style={{ color: styles.color, opacity: 0.85, lineHeight: 1.6 }}>{alert.body}</div>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         {/* Hero — compact */}
         <Card pad={false}>
           <div className="relative overflow-hidden rounded-2xl" style={{ background: 'linear-gradient(135deg, #990000 0%, #5C0000 100%)' }}>
@@ -1441,8 +1682,961 @@ CONTACTS:
     );
 
     /* ─── Schedule ─── */
-    const SchedulePage = () => {
-      const schedule = SCHEDULE.items;
+    /* ═══ Announcements Archive Page (Student-Facing) ═══ */
+    const AnnouncementsPage = ({ announcements }) => {
+      const { emails } = announcements;
+      const [expandedId, setExpandedId] = useState(null);
+
+      return (
+        <div className="space-y-5 stagger">
+          <Section title="Announcements & Emails" subtitle="Archive of all mass emails sent to students. Check here if you think you missed something." icon="Mail" />
+
+          {emails.length === 0 ? (
+            <Card>
+              <div className="py-12 text-center">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: T.warm }}>
+                  <Icon name="Inbox" size={24} style={{ color: T.inkLight }} />
+                </div>
+                <p className="text-sm font-semibold mb-1" style={{ color: T.ink }}>No announcements yet</p>
+                <p className="text-xs" style={{ color: T.inkMuted }}>When the SONA team sends out mass emails, copies will be posted here.</p>
+              </div>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {emails.map((email, idx) => {
+                const isOpen = expandedId === email.id;
+                const dateStr = email.date || (email.createdAt ? new Date(email.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '');
+                return (
+                  <div key={email.id} className="card overflow-hidden animate-up" style={{ animationDelay: (idx * 0.03) + 's', borderColor: isOpen ? T.cardinal + '30' : T.border }}>
+                    <button onClick={() => setExpandedId(isOpen ? null : email.id)}
+                      className="w-full px-5 py-4 flex items-center gap-3"
+                      style={{ backgroundColor: isOpen ? T.cardinal + '04' : 'transparent', transition: 'background 0.2s' }}>
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: isOpen ? T.cardinalLight : T.warm }}>
+                        <Icon name="Mail" size={15} style={{ color: isOpen ? T.cardinal : T.inkMuted }} />
+                      </div>
+                      <div className="flex-1 min-w-0 text-left">
+                        <div className="text-sm font-semibold truncate" style={{ color: T.ink }}>{email.subject || 'Untitled Email'}</div>
+                        <div className="text-xs mt-0.5" style={{ color: T.inkMuted }}>
+                          {dateStr}{email.from ? ' · From: ' + email.from : ''}
+                        </div>
+                      </div>
+                      <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: T.warm, transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s var(--ease-spring)' }}>
+                        <Icon name="ChevronDown" size={13} style={{ color: T.inkMuted }} />
+                      </div>
+                    </button>
+                    {isOpen && (
+                      <div className="px-5 pb-5 animate-in" style={{ borderTop: '1px solid ' + T.borderLight }}>
+                        <div className="pt-4 text-sm whitespace-pre-wrap" style={{ color: T.inkSoft, lineHeight: 1.75 }}>{email.body || '(No content)'}</div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="p-4 rounded-xl flex items-center gap-2.5" style={{ backgroundColor: T.blueBg, border: '1px solid ' + T.blueBorder }}>
+            <Icon name="Info" size={14} style={{ color: T.blue, flexShrink: 0 }} />
+            <p className="text-xs" style={{ color: T.blue }}>All official program emails are archived here. We also announce studies on <strong>#buad307-research-participation</strong> Slack.</p>
+          </div>
+        </div>
+      );
+    };
+
+    /* ═══ Admin Panel ═══ */
+    const AdminPanel = ({ schedule, announcements, adminAuth, auditLog, adminUser, setAdminUser }) => {
+      const currentUser = adminUser;
+      const [loginName, setLoginName] = useState('');
+      const [pw, setPw] = useState('');
+      const [pwError, setPwError] = useState(false);
+      const [expandedRow, setExpandedRow] = useState(null);
+      const [saveFlash, setSaveFlash] = useState(null);
+      const [activeTab, setActiveTab] = useState('schedule');
+
+      const singleUser = adminAuth.profiles.length === 1 ? adminAuth.profiles[0] : null;
+
+      const handleLogin = () => {
+        const name = singleUser ? singleUser.name : loginName;
+        const user = adminAuth.authenticate(name, pw);
+        if (user) { setAdminUser(user); setPwError(false); auditLog.record('login', 'Signed in', user.name) }
+        else { setPwError(true) }
+      };
+
+      const handleLogout = () => {
+        if (currentUser) auditLog.record('logout', 'Signed out', currentUser.name);
+        setAdminUser(null); setLoginName(''); setPw('');
+      };
+
+      const logAndDo = (action, detail, fn) => {
+        fn();
+        auditLog.record(action, detail, currentUser?.name);
+      };
+
+      const flash = (idx) => { setSaveFlash(idx); setTimeout(() => setSaveFlash(null), 800) };
+
+      const statusOpts = [
+        { value: 'available', label: 'Open', icon: 'CircleDot', bg: T.greenBg, border: T.greenBorder, color: T.green },
+        { value: 'upcoming', label: 'Upcoming', icon: 'Clock', bg: T.amberBg, border: T.amberBorder, color: T.amber },
+        { value: 'closed', label: 'Closed', icon: 'CheckCircle', bg: T.warm, border: T.border, color: T.inkLight },
+      ];
+      const getStatus = (val) => statusOpts.find(s => s.value === val) || statusOpts[2];
+
+      // Login gate
+      if (!currentUser) return (
+        <div className="space-y-5 stagger">
+          <Card>
+            <div className="max-w-sm mx-auto text-center py-8">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5"
+                style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)', boxShadow: '0 4px 16px rgba(124,58,237,0.3)' }}>
+                <Icon name="Lock" size={28} style={{ color: '#fff' }} />
+              </div>
+              <h2 className="font-display text-2xl mb-2" style={{ fontWeight: 500 }}>Admin Access</h2>
+              <p className="text-sm mb-6" style={{ color: T.inkMuted }}>
+                {singleUser ? 'Enter the admin password to continue.' : 'Sign in with your admin profile.'}
+              </p>
+              <div className="space-y-3">
+                {!singleUser && (
+                  adminAuth.profiles.length > 1 ? (
+                    <select value={loginName} onChange={e => { setLoginName(e.target.value); setPwError(false) }}
+                      className="admin-input admin-select text-center pr-8">
+                      <option value="">Select your name...</option>
+                      {adminAuth.profiles.map(p => <option key={p.id} value={p.name}>{p.name}{p.role === 'admin' ? ' (Admin)' : ''}</option>)}
+                    </select>
+                  ) : (
+                    <input value={loginName} onChange={e => { setLoginName(e.target.value); setPwError(false) }}
+                      placeholder="Your name" className="admin-input text-center" autoFocus />
+                  )
+                )}
+                <input type="password" value={pw} onChange={e => { setPw(e.target.value); setPwError(false) }}
+                  onKeyDown={e => e.key === 'Enter' && handleLogin()}
+                  placeholder="Password" className="admin-input text-center"
+                  style={{ borderColor: pwError ? T.red : undefined }} autoFocus />
+                {pwError && <p className="text-xs font-medium" style={{ color: T.red }}>Incorrect password</p>}
+                <button onClick={handleLogin} disabled={!singleUser && !loginName.trim()}
+                  className="w-full py-3 rounded-xl font-semibold text-white text-sm press disabled:opacity-40"
+                  style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)' }}>
+                  Sign In
+                </button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      );
+
+      const { items, lastUpdated, updateItem, onlineItems, labItems, activeCount, closedCount, upcomingCount } = schedule;
+
+      const tabs = [
+        { id: 'schedule', label: 'Studies', icon: 'CalendarDays' },
+        { id: 'alerts', label: 'Alerts & Popup', icon: 'Bell' },
+        { id: 'emails', label: 'Email Archive', icon: 'Mail' },
+        { id: 'profiles', label: 'Team', icon: 'Users' },
+        { id: 'log', label: 'Activity', icon: 'ScrollText' },
+      ];
+
+      /* ── Study Row with inline editing ── */
+      const StudyRow = ({ item, idx }) => {
+        const st = getStatus(item.status);
+        const isExpanded = expandedRow === item._idx;
+        const isFlashing = saveFlash === item._idx;
+        const isLab = item.type === 'lab';
+        const accent = isLab ? T.cardinal : T.gold;
+        return (
+          <div className="animate-up" style={{ animationDelay: (idx * 0.02) + 's' }}>
+            <div className="rounded-xl border overflow-hidden"
+              style={{
+                borderColor: isFlashing ? '#7C3AED' : isExpanded ? accent + '50' : T.borderLight,
+                boxShadow: isFlashing ? '0 0 0 2px rgba(124,58,237,0.15)' : 'none',
+                transition: 'border-color 0.3s, box-shadow 0.3s'
+              }}>
+              {/* Main row */}
+              <div className="px-4 py-3 flex items-center gap-3" style={{ backgroundColor: T.white }}>
+                {/* Status dropdown */}
+                <div className="relative flex-shrink-0">
+                  <select value={item.status}
+                    onChange={e => { updateItem(item._idx, { status: e.target.value }); flash(item._idx); auditLog.record('study_status', item.item + ' → ' + e.target.value, currentUser.name) }}
+                    className="appearance-none cursor-pointer rounded-lg text-[11px] font-bold uppercase tracking-wider pl-7 pr-6 py-1.5 border"
+                    style={{
+                      backgroundColor: st.bg, borderColor: st.border, color: st.color,
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='${encodeURIComponent(st.color)}' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                      backgroundRepeat: 'no-repeat', backgroundPosition: 'right 5px center'
+                    }}>
+                    <option value="available">Open</option>
+                    <option value="upcoming">Upcoming</option>
+                    <option value="closed">Closed</option>
+                  </select>
+                  <div className="absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <Icon name={st.icon} size={12} style={{ color: st.color }} />
+                  </div>
+                </div>
+
+                {/* Name + meta */}
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-semibold block truncate"
+                    style={{ color: item.status === 'closed' ? T.inkLight : T.ink, textDecoration: item.status === 'closed' ? 'line-through' : 'none' }}>
+                    {item.item}
+                  </span>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[11px] flex items-center gap-1" style={{ color: T.inkMuted }}>
+                      <Icon name="Calendar" size={10} style={{ color: T.inkLight }} />Week of {item.week}
+                    </span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold"
+                      style={{ backgroundColor: isLab ? T.cardinalLight : T.goldBg, color: isLab ? T.cardinal : T.goldText }}>
+                      {isLab ? 'Lab · 1.0 cr' : 'Online · 0.5 cr'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Date inline edit */}
+                <input value={item.week || ''} onChange={e => { updateItem(item._idx, { week: e.target.value }); flash(item._idx) }}
+                  placeholder="Date" title="Week date"
+                  className="hidden sm:block w-24 text-xs px-2.5 py-1.5 rounded-lg border text-center outline-none"
+                  style={{ borderColor: T.border, backgroundColor: T.warm, color: T.ink, transition: 'border-color 0.2s, box-shadow 0.2s' }}
+                  onFocus={e => { e.target.style.borderColor = T.cardinal; e.target.style.boxShadow = '0 0 0 2px rgba(153,0,0,0.08)' }}
+                  onBlur={e => { e.target.style.borderColor = T.border; e.target.style.boxShadow = 'none' }} />
+
+                {/* Expand toggle */}
+                <button onClick={() => setExpandedRow(isExpanded ? null : item._idx)}
+                  className="p-1.5 rounded-lg press" style={{ backgroundColor: isExpanded ? '#7C3AED12' : T.warm }}
+                  title="Edit details">
+                  <Icon name={isExpanded ? 'ChevronUp' : 'Pencil'} size={14} style={{ color: isExpanded ? '#7C3AED' : T.inkMuted }} />
+                </button>
+              </div>
+
+              {/* Expanded detail editor */}
+              {isExpanded && (
+                <div className="px-4 py-4 border-t animate-in" style={{ borderColor: T.borderLight, backgroundColor: T.bg }}>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-widest block mb-1" style={{ color: T.inkLight }}>Study Name</label>
+                      <input value={item.item} onChange={e => { updateItem(item._idx, { item: e.target.value }); flash(item._idx) }}
+                        className="admin-input text-sm" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-widest block mb-1" style={{ color: T.inkLight }}>Week Of</label>
+                      <input value={item.week || ''} onChange={e => { updateItem(item._idx, { week: e.target.value }); flash(item._idx) }}
+                        placeholder="e.g. Mar 10" className="admin-input text-sm" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-widest block mb-1" style={{ color: T.inkLight }}>Type</label>
+                      <select value={item.type} onChange={e => { updateItem(item._idx, { type: e.target.value }); flash(item._idx); auditLog.record('study_edit', item.item + ' type → ' + e.target.value, currentUser.name) }}
+                        className="admin-input admin-select text-sm">
+                        <option value="online">Online</option>
+                        <option value="lab">In-Person Lab</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest block mb-1" style={{ color: T.inkLight }}>Status</label>
+                    <div className="flex gap-1.5">
+                      {statusOpts.map(opt => (
+                        <button key={opt.value} onClick={() => { updateItem(item._idx, { status: opt.value }); flash(item._idx); auditLog.record('study_status', item.item + ' → ' + opt.value, currentUser.name) }}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wider press"
+                          style={{
+                            backgroundColor: item.status === opt.value ? opt.bg : T.white,
+                            border: '1.5px solid ' + (item.status === opt.value ? opt.border : T.borderLight),
+                            color: item.status === opt.value ? opt.color : T.inkLight, transition: 'all 0.15s'
+                          }}>
+                          <Icon name={opt.icon} size={11} style={{ color: item.status === opt.value ? opt.color : T.inkLight }} />{opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-[10px] mt-3 flex items-center gap-1" style={{ color: T.inkLight }}>
+                    <Icon name="Info" size={10} style={{ color: T.inkLight }} />Changes save automatically and update the student schedule instantly.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      };
+
+      /* ── Section with column headers ── */
+      const StudySection = ({ title, icon, accent, accentBg, sectionItems }) => (
+        <Card>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: accentBg }}>
+                <Icon name={icon} size={16} style={{ color: accent }} />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold" style={{ color: T.ink }}>{title}</h3>
+                <p className="text-[11px]" style={{ color: T.inkMuted }}>
+                  {sectionItems.filter(s => s.status === 'available').length} open · {sectionItems.filter(s => s.status === 'upcoming').length} upcoming · {sectionItems.filter(s => s.status === 'closed').length} closed
+                </p>
+              </div>
+            </div>
+          </div>
+          {sectionItems.length === 0 ? (
+            <div className="py-6 text-center rounded-xl border-2 border-dashed" style={{ borderColor: T.borderLight }}>
+              <p className="text-sm" style={{ color: T.inkMuted }}>No studies in this category.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="hidden sm:flex items-center gap-3 px-4 pb-1">
+                <div style={{ width: 100 }}><span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: T.inkLight }}>Status</span></div>
+                <div className="flex-1"><span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: T.inkLight }}>Study</span></div>
+                <div style={{ width: 96 }} className="text-center"><span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: T.inkLight }}>Date</span></div>
+                <div style={{ width: 36 }}></div>
+              </div>
+              {sectionItems.map((s, i) => <StudyRow key={s._idx} item={s} idx={i} />)}
+            </div>
+          )}
+        </Card>
+      );
+
+      return (
+        <div className="space-y-5 stagger">
+          {/* Header with user badge */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)' }}>
+                <Icon name="Settings" size={20} style={{ color: '#fff' }} />
+              </div>
+              <div>
+                <h2 className="font-display text-xl sm:text-2xl" style={{ fontWeight: 500 }}>Admin Panel</h2>
+                <p className="text-xs" style={{ color: T.inkMuted }}>Signed in as <strong style={{ color: '#7C3AED' }}>{currentUser.name}</strong> · {currentUser.role}</p>
+              </div>
+            </div>
+            <button onClick={handleLogout} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg press"
+              style={{ backgroundColor: T.warm, color: T.inkMuted }}>
+              <Icon name="LogOut" size={12} style={{ color: T.inkMuted }} />Sign Out
+            </button>
+          </div>
+
+          {/* Tab nav */}
+          <div className="flex gap-1 overflow-x-auto no-scrollbar -mx-1 px-1">
+            {tabs.map(tab => (
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap press"
+                style={{
+                  backgroundColor: activeTab === tab.id ? '#7C3AED12' : T.warm,
+                  color: activeTab === tab.id ? '#7C3AED' : T.inkMuted,
+                  border: activeTab === tab.id ? '1.5px solid #7C3AED30' : '1.5px solid transparent',
+                  transition: 'all 0.15s'
+                }}>
+                <Icon name={tab.icon} size={13} style={{ color: activeTab === tab.id ? '#7C3AED' : T.inkLight }} />{tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* ═══ SCHEDULE TAB ═══ */}
+          {activeTab === 'schedule' && (<>
+            {/* Stats */}
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { n: items.filter(s => s.type).length, l: 'Total', bg: T.white, bc: T.borderLight, c: T.ink, lc: T.inkLight },
+                { n: activeCount, l: 'Open', bg: T.greenBg, bc: T.greenBorder, c: T.green, lc: T.green },
+                { n: upcomingCount, l: 'Upcoming', bg: T.amberBg, bc: T.amberBorder, c: T.amber, lc: T.amber },
+                { n: closedCount, l: 'Closed', bg: T.warm, bc: T.border, c: T.inkLight, lc: T.inkLight },
+              ].map((s, i) => (
+                <div key={i} className="p-3 rounded-xl text-center" style={{ backgroundColor: s.bg, border: '1px solid ' + s.bc }}>
+                  <div className="text-2xl font-bold" style={{ letterSpacing: '-0.03em', color: s.c }}>{s.n}</div>
+                  <div className="text-[10px] font-bold uppercase tracking-widest" style={{ color: s.lc }}>{s.l}</div>
+                </div>
+              ))}
+            </div>
+            <StudySection title="Online Studies" icon="Monitor" accent={T.gold} accentBg={T.goldBg} sectionItems={onlineItems} />
+            <StudySection title="In-Person Lab Sessions" icon="Building" accent={T.cardinal} accentBg={T.cardinalLight} sectionItems={labItems} />
+            {items.filter(s => s.type).length > 0 && (
+              <div className="flex items-center justify-between p-4 rounded-xl" style={{ backgroundColor: T.warm, border: '1px solid ' + T.borderLight }}>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <button onClick={() => { if (window.confirm('Mark ALL open studies as closed?')) { const next = items.map(it => it.type && it.status === 'available' ? { ...it, status: 'closed' } : it); schedule.save(next); auditLog.record('bulk_close', 'Closed all open studies', currentUser.name) } }}
+                    className="text-xs font-medium px-3 py-1.5 rounded-lg press"
+                    style={{ backgroundColor: T.white, color: T.inkMuted, border: '1px solid ' + T.border }}>
+                    <span className="flex items-center gap-1.5"><Icon name="CheckCircle" size={12} style={{ color: T.inkMuted }} />Close all open</span>
+                  </button>
+                  <button onClick={() => { if (window.confirm('Mark ALL upcoming as open?')) { const next = items.map(it => it.type && it.status === 'upcoming' ? { ...it, status: 'available' } : it); schedule.save(next); auditLog.record('bulk_open', 'Opened all upcoming studies', currentUser.name) } }}
+                    className="text-xs font-medium px-3 py-1.5 rounded-lg press"
+                    style={{ backgroundColor: T.white, color: T.inkMuted, border: '1px solid ' + T.border }}>
+                    <span className="flex items-center gap-1.5"><Icon name="CircleDot" size={12} style={{ color: T.inkMuted }} />Open all upcoming</span>
+                  </button>
+                  <button onClick={() => { if (window.confirm('Reset schedule to defaults? Cannot be undone.')) { schedule.save(SCHEDULE.items, SCHEDULE.lastUpdated); auditLog.record('reset_schedule', 'Reset schedule to defaults', currentUser.name) } }}
+                    className="text-xs font-medium px-3 py-1.5 rounded-lg press"
+                    style={{ backgroundColor: T.white, color: T.inkMuted, border: '1px solid ' + T.border }}>
+                    <span className="flex items-center gap-1.5"><Icon name="RotateCcw" size={12} style={{ color: T.inkMuted }} />Reset to defaults</span>
+                  </button>
+                </div>
+              </div>
+            )}
+            <div className="flex gap-2 flex-wrap">
+              {statusOpts.map(opt => (
+                <div key={opt.value} className="flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-lg"
+                  style={{ backgroundColor: opt.bg, color: opt.color, border: '1px solid ' + opt.border }}>
+                  <Icon name={opt.icon} size={11} style={{ color: opt.color }} />
+                  <span className="font-semibold">{opt.label}</span>
+                  <span style={{ opacity: 0.65 }}>— {opt.value === 'available' ? 'open to students' : opt.value === 'upcoming' ? 'coming soon' : 'grayed out'}</span>
+                </div>
+              ))}
+            </div>
+          </>)}
+
+          {/* ═══ ALERTS & POPUP TAB ═══ */}
+          {activeTab === 'alerts' && (<>
+            <AdminPopupSection announcements={announcements} userName={currentUser.name} log={auditLog.record} />
+            <AdminAlertsSection announcements={announcements} userName={currentUser.name} log={auditLog.record} />
+          </>)}
+
+          {/* ═══ EMAIL ARCHIVE TAB ═══ */}
+          {activeTab === 'emails' && (
+            <AdminEmailSection announcements={announcements} userName={currentUser.name} log={auditLog.record} />
+          )}
+
+          {/* ═══ TEAM / PROFILES TAB ═══ */}
+          {activeTab === 'profiles' && (
+            <AdminProfilesSection adminAuth={adminAuth} currentUser={currentUser} log={auditLog.record} />
+          )}
+
+          {/* ═══ ACTIVITY LOG TAB ═══ */}
+          {activeTab === 'log' && (
+            <AdminActivityLog auditLog={auditLog} currentUser={currentUser} />
+          )}
+        </div>
+      );
+    };
+
+    /* ── Admin: Popup Manager ── */
+    const AdminPopupSection = ({ announcements, userName, log }) => {
+      const { popup, updatePopup } = announcements;
+      const [title, setTitle] = useState(popup.title || '');
+      const [body, setBody] = useState(popup.body || '');
+      useEffect(() => { setTitle(popup.title || ''); setBody(popup.body || '') }, [popup.title, popup.body]);
+
+      const savePopup = () => {
+        updatePopup({ title, body, id: Date.now().toString() });
+        log('popup_update', 'Updated popup: "' + title + '"', userName);
+      };
+
+      return (
+        <Card accent="#DC2626">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: T.redBg }}>
+                <Icon name="AlertOctagon" size={16} style={{ color: T.red }} />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold" style={{ color: T.ink }}>Popup Message</h3>
+                <p className="text-[11px]" style={{ color: T.inkMuted }}>Students must read and dismiss before accessing the site</p>
+              </div>
+            </div>
+            <button onClick={() => { updatePopup({ enabled: !popup.enabled }); log(popup.enabled ? 'popup_disable' : 'popup_enable', popup.enabled ? 'Disabled popup' : 'Enabled popup', userName) }}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold press"
+              style={{
+                backgroundColor: popup.enabled ? T.redBg : T.warm,
+                color: popup.enabled ? T.red : T.inkMuted,
+                border: '1px solid ' + (popup.enabled ? T.redBorder : T.border)
+              }}>
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: popup.enabled ? T.red : T.stone, animation: popup.enabled ? 'breathe 2s infinite' : 'none' }} />
+              {popup.enabled ? 'LIVE' : 'OFF'}
+            </button>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-widest block mb-1" style={{ color: T.inkLight }}>Popup Title</label>
+              <input value={title} onChange={e => setTitle(e.target.value)}
+                placeholder="e.g. ⚠️ Important: Schedule Change" className="admin-input" />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-widest block mb-1" style={{ color: T.inkLight }}>Message Body</label>
+              <textarea value={body} onChange={e => setBody(e.target.value)}
+                placeholder="Type or paste the full message students must read..."
+                rows={4} className="admin-input" style={{ resize: 'vertical', minHeight: 80 }} />
+            </div>
+            <div className="flex gap-2">
+              <button onClick={savePopup} disabled={!title.trim() && !body.trim()}
+                className="px-4 py-2.5 rounded-xl font-semibold text-white text-xs press disabled:opacity-40"
+                style={{ backgroundColor: T.red }}>
+                Save Popup
+              </button>
+              {popup.enabled && (
+                <button onClick={() => { updatePopup({ enabled: false }); log('popup_disable', 'Disabled popup', userName) }}
+                  className="px-4 py-2.5 rounded-xl font-medium text-xs press"
+                  style={{ backgroundColor: T.warm, color: T.inkMuted }}>
+                  Disable Popup
+                </button>
+              )}
+            </div>
+          </div>
+          {popup.enabled && popup.title && (
+            <div className="mt-4 p-4 rounded-xl border-2 border-dashed" style={{ borderColor: T.redBorder, backgroundColor: T.redBg }}>
+              <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.red }}>Preview</div>
+              <div className="text-sm font-bold mb-1" style={{ color: T.ink }}>{popup.title}</div>
+              <div className="text-xs whitespace-pre-wrap" style={{ color: T.inkSoft, lineHeight: 1.6 }}>{popup.body}</div>
+            </div>
+          )}
+        </Card>
+      );
+    };
+
+    /* ── Admin: Urgent Alerts Manager ── */
+    const AdminAlertsSection = ({ announcements, userName, log }) => {
+      const { alerts, addAlert, removeAlert } = announcements;
+      const [showForm, setShowForm] = useState(false);
+      const [form, setForm] = useState({ title: '', body: '', type: 'warning' });
+
+      const handleAdd = () => {
+        if (!form.title.trim()) return;
+        addAlert(form);
+        log('alert_add', 'Posted alert: "' + form.title + '"', userName);
+        setForm({ title: '', body: '', type: 'warning' });
+        setShowForm(false);
+      };
+
+      const typeOpts = [
+        { value: 'error', label: 'Urgent', color: T.red, bg: T.redBg, border: T.redBorder, icon: 'AlertTriangle' },
+        { value: 'warning', label: 'Warning', color: T.amber, bg: T.amberBg, border: T.amberBorder, icon: 'AlertTriangle' },
+        { value: 'info', label: 'Info', color: T.blue, bg: T.blueBg, border: T.blueBorder, icon: 'Info' },
+        { value: 'success', label: 'Success', color: T.green, bg: T.greenBg, border: T.greenBorder, icon: 'CheckCircle' },
+      ];
+
+      return (
+        <Card accent={T.amber}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: T.amberBg }}>
+                <Icon name="Bell" size={16} style={{ color: T.amber }} />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold" style={{ color: T.ink }}>Homepage Alerts</h3>
+                <p className="text-[11px]" style={{ color: T.inkMuted }}>{alerts.length} alert{alerts.length !== 1 ? 's' : ''} · Shown at top of Dashboard</p>
+              </div>
+            </div>
+            <button onClick={() => setShowForm(!showForm)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold press"
+              style={{ backgroundColor: T.amberBg, color: T.amber, border: '1px solid ' + T.amberBorder }}>
+              <Icon name={showForm ? 'X' : 'Plus'} size={13} style={{ color: T.amber }} />{showForm ? 'Cancel' : 'Add Alert'}
+            </button>
+          </div>
+
+          {showForm && (
+            <div className="space-y-3 mb-4 p-4 rounded-xl animate-in" style={{ backgroundColor: T.bg, border: '1px solid ' + T.borderLight }}>
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-widest block mb-1" style={{ color: T.inkLight }}>Alert Title *</label>
+                <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
+                  placeholder="e.g. Online Study 3 deadline extended" className="admin-input" autoFocus />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-widest block mb-1" style={{ color: T.inkLight }}>Details (optional)</label>
+                <textarea value={form.body} onChange={e => setForm({ ...form, body: e.target.value })}
+                  placeholder="Additional context..." rows={2} className="admin-input" style={{ resize: 'vertical' }} />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-widest block mb-1.5" style={{ color: T.inkLight }}>Type</label>
+                <div className="flex gap-1.5">
+                  {typeOpts.map(opt => (
+                    <button key={opt.value} onClick={() => setForm({ ...form, type: opt.value })}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wider press"
+                      style={{
+                        backgroundColor: form.type === opt.value ? opt.bg : T.white,
+                        border: '1.5px solid ' + (form.type === opt.value ? opt.border : T.borderLight),
+                        color: form.type === opt.value ? opt.color : T.inkLight
+                      }}>
+                      <Icon name={opt.icon} size={11} style={{ color: form.type === opt.value ? opt.color : T.inkLight }} />{opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <button onClick={handleAdd} disabled={!form.title.trim()}
+                className="w-full py-2.5 rounded-xl font-semibold text-white text-xs press disabled:opacity-40"
+                style={{ backgroundColor: T.amber }}>
+                Post Alert to Dashboard
+              </button>
+            </div>
+          )}
+
+          {alerts.length === 0 ? (
+            <div className="py-6 text-center rounded-xl border-2 border-dashed" style={{ borderColor: T.borderLight }}>
+              <p className="text-xs" style={{ color: T.inkMuted }}>No active alerts. Students will see the default dashboard.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {alerts.map(alert => {
+                const opt = typeOpts.find(t => t.value === alert.type) || typeOpts[1];
+                return (
+                  <div key={alert.id} className="flex items-start gap-3 p-3.5 rounded-xl"
+                    style={{ backgroundColor: opt.bg, border: '1px solid ' + opt.border }}>
+                    <Icon name={opt.icon} size={14} style={{ color: opt.color, flexShrink: 0, marginTop: 2 }} />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold" style={{ color: opt.color }}>{alert.title}</div>
+                      {alert.body && <div className="text-xs mt-0.5" style={{ color: opt.color, opacity: 0.85 }}>{alert.body}</div>}
+                      <div className="text-[10px] mt-1" style={{ color: opt.color, opacity: 0.6 }}>
+                        Posted {new Date(alert.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                      </div>
+                    </div>
+                    <button onClick={() => { removeAlert(alert.id); log('alert_remove', 'Removed alert: "' + alert.title + '"', userName) }} className="p-1 rounded-md press flex-shrink-0"
+                      style={{ backgroundColor: opt.color + '15' }} title="Remove alert">
+                      <Icon name="X" size={12} style={{ color: opt.color }} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+      );
+    };
+
+    /* ── Admin: Email Archive Manager ── */
+    const AdminEmailSection = ({ announcements, userName, log }) => {
+      const { emails, addEmail, removeEmail, updateEmail } = announcements;
+      const [showForm, setShowForm] = useState(false);
+      const [editId, setEditId] = useState(null);
+      const [form, setForm] = useState({ subject: '', date: '', from: 'SONA Administrative Team', body: '' });
+      const [confirmDel, setConfirmDel] = useState(null);
+
+      const handleSubmit = () => {
+        if (!form.subject.trim()) return;
+        if (editId) {
+          updateEmail(editId, form);
+          log('email_edit', 'Edited email: "' + form.subject + '"', userName);
+          setEditId(null);
+        } else {
+          addEmail(form);
+          log('email_add', 'Archived email: "' + form.subject + '"', userName);
+        }
+        setForm({ subject: '', date: '', from: 'SONA Administrative Team', body: '' });
+        setShowForm(false);
+      };
+
+      const startEdit = (e) => {
+        setForm({ subject: e.subject || '', date: e.date || '', from: e.from || '', body: e.body || '' });
+        setEditId(e.id);
+        setShowForm(true);
+      };
+
+      return (
+        <Card accent={T.blue}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: T.blueBg }}>
+                <Icon name="Mail" size={16} style={{ color: T.blue }} />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold" style={{ color: T.ink }}>Email Archive</h3>
+                <p className="text-[11px]" style={{ color: T.inkMuted }}>{emails.length} email{emails.length !== 1 ? 's' : ''} · Copy-paste mass emails for student access</p>
+              </div>
+            </div>
+            <button onClick={() => { setShowForm(!showForm); setEditId(null); setForm({ subject: '', date: '', from: 'SONA Administrative Team', body: '' }) }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold press"
+              style={{ backgroundColor: T.blueBg, color: T.blue, border: '1px solid ' + T.blueBorder }}>
+              <Icon name={showForm ? 'X' : 'Plus'} size={13} style={{ color: T.blue }} />{showForm ? 'Cancel' : 'Add Email'}
+            </button>
+          </div>
+
+          {showForm && (
+            <div className="space-y-3 mb-4 p-4 rounded-xl animate-in" style={{ backgroundColor: T.bg, border: '1px solid ' + T.borderLight }}>
+              <div className="text-xs font-bold mb-1" style={{ color: '#7C3AED' }}>{editId ? 'Edit Email' : 'Archive a New Email'}</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest block mb-1" style={{ color: T.inkLight }}>Subject Line *</label>
+                  <input value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })}
+                    placeholder="e.g. [BUAD 307] Online Study 3 Now Available" className="admin-input" autoFocus />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest block mb-1" style={{ color: T.inkLight }}>Date Sent</label>
+                  <input value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
+                    placeholder="e.g. Feb 17, 2026" className="admin-input" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest block mb-1" style={{ color: T.inkLight }}>From</label>
+                  <input value={form.from} onChange={e => setForm({ ...form, from: e.target.value })}
+                    placeholder="e.g. SONA Administrative Team" className="admin-input" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest block mb-1" style={{ color: T.inkLight }}>Email Body (paste full text)</label>
+                  <textarea value={form.body} onChange={e => setForm({ ...form, body: e.target.value })}
+                    placeholder="Paste the full email body here. Students will see this exactly as you type it..."
+                    rows={8} className="admin-input" style={{ resize: 'vertical', minHeight: 120, fontFamily: 'inherit', lineHeight: 1.6 }} />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={handleSubmit} disabled={!form.subject.trim()}
+                  className="flex-1 py-2.5 rounded-xl font-semibold text-white text-xs press disabled:opacity-40"
+                  style={{ backgroundColor: T.blue }}>
+                  {editId ? 'Save Changes' : 'Archive Email'}
+                </button>
+                <button onClick={() => { setShowForm(false); setEditId(null) }}
+                  className="px-4 py-2.5 rounded-xl font-medium text-xs press"
+                  style={{ backgroundColor: T.warm, color: T.inkMuted }}>Cancel</button>
+              </div>
+            </div>
+          )}
+
+          {emails.length === 0 ? (
+            <div className="py-6 text-center rounded-xl border-2 border-dashed" style={{ borderColor: T.borderLight }}>
+              <p className="text-xs" style={{ color: T.inkMuted }}>No emails archived yet. Use "Add Email" to copy-paste mass emails.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {emails.map((email, idx) => (
+                <div key={email.id} className="flex items-center gap-3 p-3 rounded-xl border animate-up"
+                  style={{ backgroundColor: T.white, borderColor: T.borderLight, animationDelay: (idx * 0.02) + 's' }}>
+                  <Icon name="Mail" size={14} style={{ color: T.blue, flexShrink: 0 }} />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold truncate" style={{ color: T.ink }}>{email.subject}</div>
+                    <div className="text-[11px]" style={{ color: T.inkMuted }}>
+                      {email.date || new Date(email.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      {email.from ? ' · ' + email.from : ''}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button onClick={() => startEdit(email)} className="p-1.5 rounded-lg press" style={{ backgroundColor: T.warm }} title="Edit">
+                      <Icon name="Pencil" size={12} style={{ color: T.inkMuted }} />
+                    </button>
+                    {confirmDel === email.id ? (
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => { removeEmail(email.id); log('email_remove', 'Deleted email: "' + email.subject + '"', userName); setConfirmDel(null) }}
+                          className="px-2 py-1 rounded-lg text-[11px] font-bold press" style={{ backgroundColor: T.redBg, color: T.red }}>Delete</button>
+                        <button onClick={() => setConfirmDel(null)}
+                          className="px-2 py-1 rounded-lg text-[11px] press" style={{ backgroundColor: T.warm, color: T.inkMuted }}>No</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => setConfirmDel(email.id)} className="p-1.5 rounded-lg press" style={{ backgroundColor: T.warm }} title="Delete">
+                        <Icon name="Trash2" size={12} style={{ color: T.inkLight }} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      );
+    };
+
+    /* ── Admin: Team Profiles Manager ── */
+    const AdminProfilesSection = ({ adminAuth, currentUser, log }) => {
+      const { profiles, addProfile, updateProfile, removeProfile } = adminAuth;
+      const [showForm, setShowForm] = useState(false);
+      const [form, setForm] = useState({ name: '', pw: '', role: 'editor' });
+      const [editId, setEditId] = useState(null);
+      const [showPw, setShowPw] = useState({});
+
+      const handleSubmit = () => {
+        if (!form.name.trim() || !form.pw.trim()) return;
+        if (editId) {
+          updateProfile(editId, form);
+          log('profile_edit', 'Updated profile: ' + form.name, currentUser.name);
+          setEditId(null);
+        } else {
+          addProfile(form);
+          log('profile_add', 'Created profile: ' + form.name + ' (' + form.role + ')', currentUser.name);
+        }
+        setForm({ name: '', pw: '', role: 'editor' });
+        setShowForm(false);
+      };
+
+      const startEdit = (p) => {
+        setForm({ name: p.name, pw: p.pw, role: p.role });
+        setEditId(p.id);
+        setShowForm(true);
+      };
+
+      const handleRemove = (p) => {
+        if (p.id === currentUser.id) return;
+        if (window.confirm('Remove ' + p.name + '? They won\'t be able to sign in.')) {
+          removeProfile(p.id);
+          log('profile_remove', 'Removed profile: ' + p.name, currentUser.name);
+        }
+      };
+
+      const roleColors = {
+        admin: { bg: '#7C3AED12', color: '#7C3AED', border: '#7C3AED30' },
+        editor: { bg: T.blueBg, color: T.blue, border: T.blueBorder },
+      };
+
+      return (
+        <Card accent="#7C3AED">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#7C3AED12' }}>
+                <Icon name="Users" size={16} style={{ color: '#7C3AED' }} />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold" style={{ color: T.ink }}>Team Profiles</h3>
+                <p className="text-[11px]" style={{ color: T.inkMuted }}>{profiles.length} member{profiles.length !== 1 ? 's' : ''} · Each person signs in with their name & password</p>
+              </div>
+            </div>
+            <button onClick={() => { setShowForm(!showForm); setEditId(null); setForm({ name: '', pw: '', role: 'editor' }) }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold press"
+              style={{ backgroundColor: '#7C3AED12', color: '#7C3AED', border: '1px solid #7C3AED30' }}>
+              <Icon name={showForm ? 'X' : 'UserPlus'} size={13} style={{ color: '#7C3AED' }} />{showForm ? 'Cancel' : 'Add Person'}
+            </button>
+          </div>
+
+          {showForm && (
+            <div className="space-y-3 mb-4 p-4 rounded-xl animate-in" style={{ backgroundColor: T.bg, border: '1px solid ' + T.borderLight }}>
+              <div className="text-xs font-bold mb-1" style={{ color: '#7C3AED' }}>{editId ? 'Edit Profile' : 'New Team Member'}</div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest block mb-1" style={{ color: T.inkLight }}>Name *</label>
+                  <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
+                    placeholder="e.g. Sarah" className="admin-input" autoFocus />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest block mb-1" style={{ color: T.inkLight }}>Password *</label>
+                  <input value={form.pw} onChange={e => setForm({ ...form, pw: e.target.value })}
+                    placeholder="Their login password" className="admin-input" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest block mb-1" style={{ color: T.inkLight }}>Role</label>
+                  <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}
+                    className="admin-input admin-select">
+                    <option value="admin">Admin (full access)</option>
+                    <option value="editor">Editor (manage content)</option>
+                  </select>
+                </div>
+              </div>
+              <button onClick={handleSubmit} disabled={!form.name.trim() || !form.pw.trim()}
+                className="w-full py-2.5 rounded-xl font-semibold text-white text-xs press disabled:opacity-40"
+                style={{ backgroundColor: '#7C3AED' }}>
+                {editId ? 'Save Changes' : 'Create Profile'}
+              </button>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            {profiles.map(p => {
+              const rc = roleColors[p.role] || roleColors.editor;
+              const isMe = p.id === currentUser.id;
+              return (
+                <div key={p.id} className="flex items-center gap-3 p-3.5 rounded-xl border"
+                  style={{ backgroundColor: isMe ? '#7C3AED06' : T.white, borderColor: isMe ? '#7C3AED25' : T.borderLight }}>
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
+                    style={{ backgroundColor: rc.bg, color: rc.color, border: '1.5px solid ' + rc.border }}>
+                    {p.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold" style={{ color: T.ink }}>{p.name}</span>
+                      {isMe && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: '#7C3AED12', color: '#7C3AED' }}>You</span>}
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded"
+                        style={{ backgroundColor: rc.bg, color: rc.color }}>{p.role}</span>
+                      <button onClick={() => setShowPw({ ...showPw, [p.id]: !showPw[p.id] })}
+                        className="text-[10px] flex items-center gap-0.5" style={{ color: T.inkLight }}>
+                        <Icon name={showPw[p.id] ? 'EyeOff' : 'Eye'} size={9} style={{ color: T.inkLight }} />
+                        {showPw[p.id] ? p.pw : '••••••'}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button onClick={() => startEdit(p)} className="p-1.5 rounded-lg press" style={{ backgroundColor: T.warm }} title="Edit">
+                      <Icon name="Pencil" size={12} style={{ color: T.inkMuted }} />
+                    </button>
+                    {!isMe && profiles.length > 1 && (
+                      <button onClick={() => handleRemove(p)} className="p-1.5 rounded-lg press" style={{ backgroundColor: T.warm }} title="Remove">
+                        <Icon name="Trash2" size={12} style={{ color: T.inkLight }} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <p className="text-[10px] mt-3 flex items-center gap-1" style={{ color: T.inkLight }}>
+            <Icon name="Info" size={10} style={{ color: T.inkLight }} />Every action is logged in the Activity tab with the team member's name and timestamp.
+          </p>
+        </Card>
+      );
+    };
+
+    /* ── Admin: Activity / Audit Log ── */
+    const AdminActivityLog = ({ auditLog, currentUser }) => {
+      const { log, clearLog } = auditLog;
+
+      const actionLabels = {
+        login: { icon: 'LogIn', color: T.green, label: 'Signed in' },
+        logout: { icon: 'LogOut', color: T.inkLight, label: 'Signed out' },
+        study_status: { icon: 'RefreshCw', color: T.blue, label: 'Study status' },
+        study_edit: { icon: 'Pencil', color: T.blue, label: 'Study edit' },
+        bulk_close: { icon: 'CheckCircle', color: T.amber, label: 'Bulk close' },
+        bulk_open: { icon: 'CircleDot', color: T.green, label: 'Bulk open' },
+        reset_schedule: { icon: 'RotateCcw', color: T.red, label: 'Reset' },
+        popup_update: { icon: 'AlertOctagon', color: T.red, label: 'Popup' },
+        popup_enable: { icon: 'AlertOctagon', color: T.red, label: 'Popup on' },
+        popup_disable: { icon: 'AlertOctagon', color: T.inkLight, label: 'Popup off' },
+        alert_add: { icon: 'Bell', color: T.amber, label: 'Alert posted' },
+        alert_remove: { icon: 'BellOff', color: T.inkLight, label: 'Alert removed' },
+        email_add: { icon: 'Mail', color: T.blue, label: 'Email archived' },
+        email_edit: { icon: 'Pencil', color: T.blue, label: 'Email edited' },
+        email_remove: { icon: 'Trash2', color: T.red, label: 'Email deleted' },
+        profile_add: { icon: 'UserPlus', color: '#7C3AED', label: 'Profile created' },
+        profile_edit: { icon: 'UserCog', color: '#7C3AED', label: 'Profile edited' },
+        profile_remove: { icon: 'UserMinus', color: T.red, label: 'Profile removed' },
+      };
+
+      const fmtTime = (ts) => {
+        const d = new Date(ts);
+        const now = new Date();
+        const diff = now - d;
+        if (diff < 60000) return 'Just now';
+        if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+        if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      };
+
+      return (
+        <Card accent={T.inkLight}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: T.warm }}>
+                <Icon name="ScrollText" size={16} style={{ color: T.inkMuted }} />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold" style={{ color: T.ink }}>Activity Log</h3>
+                <p className="text-[11px]" style={{ color: T.inkMuted }}>{log.length} entries · Who changed what and when</p>
+              </div>
+            </div>
+            {log.length > 0 && (
+              <button onClick={() => { if (window.confirm('Clear entire activity log?')) clearLog() }}
+                className="text-[11px] px-2.5 py-1 rounded-lg press" style={{ backgroundColor: T.warm, color: T.inkMuted }}>
+                Clear
+              </button>
+            )}
+          </div>
+
+          {log.length === 0 ? (
+            <div className="py-8 text-center rounded-xl border-2 border-dashed" style={{ borderColor: T.borderLight }}>
+              <Icon name="ScrollText" size={20} style={{ color: T.inkLight, margin: '0 auto 8px' }} />
+              <p className="text-xs" style={{ color: T.inkMuted }}>No activity yet. Actions will be logged as team members make changes.</p>
+            </div>
+          ) : (
+            <div className="space-y-0.5 max-h-96 overflow-y-auto no-scrollbar">
+              {log.map((entry, idx) => {
+                const a = actionLabels[entry.action] || { icon: 'Activity', color: T.inkMuted, label: entry.action };
+                return (
+                  <div key={entry.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg animate-up"
+                    style={{ animationDelay: (idx * 0.01) + 's', backgroundColor: idx === 0 ? '#7C3AED06' : 'transparent' }}>
+                    <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: a.color + '12' }}>
+                      <Icon name={a.icon} size={12} style={{ color: a.color }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold" style={{ color: '#7C3AED' }}>{entry.user}</span>
+                        <span className="text-[11px]" style={{ color: T.inkMuted }}>—</span>
+                        <span className="text-[11px] font-medium truncate" style={{ color: T.inkSoft }}>{entry.detail}</span>
+                      </div>
+                    </div>
+                    <span className="text-[10px] flex-shrink-0 tabular-nums" style={{ color: T.inkLight }}>{fmtTime(entry.ts)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+      );
+    };
+
+    const SchedulePage = ({ schedule: sched }) => {
+      const scheduleItems = sched ? sched.items : SCHEDULE.items;
+      const schedLastUpdated = sched ? sched.lastUpdated : SCHEDULE.lastUpdated;
 
       return (
         <div className="space-y-5 stagger">
@@ -1450,7 +2644,7 @@ CONTACTS:
 
           <div className="flex items-center gap-2 px-1 -mt-2">
             <Icon name="RefreshCw" size={11} style={{ color: T.inkLight }} />
-            <span className="text-xs font-medium" style={{ color: T.inkMuted }}>Last updated: {SCHEDULE.lastUpdated}</span>
+            <span className="text-xs font-medium" style={{ color: T.inkMuted }}>Last updated: {schedLastUpdated}</span>
           </div>
 
           <Anchor id="sec-sched-overview" />
@@ -1483,7 +2677,7 @@ CONTACTS:
               {(() => {
                 let shownOnlineAnchor = false;
                 let shownLabAnchor = false;
-                return schedule.map((row, i) => {
+                return scheduleItems.map((row, i) => {
                 if (row.divider) return (
                   <div key={i} className="flex items-center justify-center gap-2 py-3 px-4 sm:px-5" style={{ backgroundColor: T.warm }}>
                     <div className="h-px flex-1" style={{ backgroundColor: T.border }} />
@@ -1603,15 +2797,24 @@ CONTACTS:
       const [drawer, setDrawer] = useState(false);
       const [searchOpen, setSearchOpen] = useState(false);
       const [activeSection, setActiveSection] = useState(null);
+      const [popupDismissed, setPopupDismissed] = useState(false);
+      const [adminUser, setAdminUser] = useState(null);
 
-      // Use shared schedule data
-      const nextOnline = SCHED_NEXT_ONLINE;
-      const nextLab = SCHED_NEXT_LAB;
+      // Dynamic data from persistent storage
+      const schedule = useSchedule();
+      const announcements = useAnnouncements();
+      const adminAuth = useAdminAuth();
+      const auditLog = useAuditLog();
+      const nextOnline = schedule.nextOnline;
+      const nextLab = schedule.nextLab;
+
+      // Check if popup was already dismissed this session
+      const showPopup = announcements.popup.enabled && announcements.popup.title && !popupDismissed;
 
       const go = useCallback(id => { setPage(id); setDrawer(false); setActiveSection(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }, []);
 
       // Hash routing
-      useEffect(() => { const hash = window.location.hash.slice(1); if (hash && ['home', 'credits', 'schedule', 'setup', 'location', 'faq', 'contact'].includes(hash)) setPage(hash) }, []);
+      useEffect(() => { const hash = window.location.hash.slice(1); if (hash && ['home', 'credits', 'schedule', 'setup', 'location', 'faq', 'contact', 'admin', 'announcements'].includes(hash)) setPage(hash) }, []);
       useEffect(() => { if (page) window.history.replaceState(null, '', '#' + page) }, [page]);
 
       // Keyboard shortcuts
@@ -1695,6 +2898,7 @@ CONTACTS:
       const nav = [
         { id: 'home', icon: 'LayoutDashboard', label: 'Dashboard' },
         { id: 'schedule', icon: 'CalendarDays', label: 'Schedule' },
+        { id: 'announcements', icon: 'Mail', label: 'Announcements' },
         { id: 'setup', icon: 'Settings', label: 'Account Setup', step: 1 },
         { id: 'credits', icon: 'Award', label: 'Earn Credits', step: 2 },
         { id: 'location', icon: 'MapPin', label: 'Lab Location' },
@@ -1704,12 +2908,19 @@ CONTACTS:
       const mobileNav = [
         { id: 'home', icon: 'LayoutDashboard', label: 'Home' },
         { id: 'schedule', icon: 'CalendarDays', label: 'Schedule' },
-        { id: 'credits', icon: 'Award', label: 'Credits' },
+        { id: 'announcements', icon: 'Mail', label: 'Emails' },
         { id: 'faq', icon: 'HelpCircle', label: 'FAQ' },
         { id: 'contact', icon: 'LifeBuoy', label: 'Help' },
       ];
-      const pages = { home: () => <Dashboard go={go} nextOnline={nextOnline} nextLab={nextLab} />, credits: EarnCredits, schedule: SchedulePage, setup: SetupPage, location: LabLocation, faq: FAQPage, contact: ContactPage };
-      const Page = pages[page] || (() => <Dashboard go={go} nextOnline={nextOnline} nextLab={nextLab} />);
+      const pages = {
+        home: () => <Dashboard go={go} nextOnline={nextOnline} nextLab={nextLab} alerts={announcements.alerts} />,
+        credits: EarnCredits,
+        schedule: () => <SchedulePage schedule={schedule} />,
+        announcements: () => <AnnouncementsPage announcements={announcements} />,
+        setup: SetupPage, location: LabLocation, faq: FAQPage, contact: ContactPage,
+        admin: () => <AdminPanel schedule={schedule} announcements={announcements} adminAuth={adminAuth} auditLog={auditLog} adminUser={adminUser} setAdminUser={setAdminUser} />,
+      };
+      const Page = pages[page] || (() => <Dashboard go={go} nextOnline={nextOnline} nextLab={nextLab} alerts={announcements.alerts} />);
 
       return (
         <div className="min-h-screen flex flex-col" style={{ backgroundColor: T.bg }}>
@@ -2061,10 +3272,52 @@ CONTACTS:
               {/* Bottom bar */}
               <div className="border-t py-4 pb-24 lg:pb-4 flex flex-col sm:flex-row items-center justify-between gap-2" style={{ borderColor: T.borderLight }}>
                 <p className="text-[11px]" style={{ color: T.inkLight }}>© 2026 University of Southern California · Marshall School of Business</p>
-                <p className="text-[11px]" style={{ color: T.inkLight }}>Schedule updated {SCHEDULE.lastUpdated}</p>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => go('admin')} className="text-[11px] press"
+                    style={{ color: T.inkLight, textDecoration: 'underline', textUnderlineOffset: 2, background: 'none', border: 'none', cursor: 'pointer' }}>Admin</button>
+                  <p className="text-[11px]" style={{ color: T.inkLight }}>Schedule updated {schedule.lastUpdated}</p>
+                </div>
               </div>
             </div>
           </footer>
+
+          {/* ─── Popup Gate ─── */}
+          {showPopup && (
+            <div className="fixed inset-0 z-[9998] flex items-center justify-center p-4"
+              style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+              <div className="w-full max-w-lg rounded-2xl overflow-hidden animate-up"
+                style={{ backgroundColor: T.white, boxShadow: '0 25px 60px rgba(0,0,0,0.3)' }}>
+                {/* Popup header */}
+                <div className="px-6 py-5" style={{ background: 'linear-gradient(135deg, #990000 0%, #5C0000 100%)' }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}>
+                      <Icon name="AlertTriangle" size={20} style={{ color: '#fff' }} />
+                    </div>
+                    <div>
+                      <div className="text-white font-bold text-lg" style={{ fontFamily: '"Source Serif 4", Georgia, serif' }}>
+                        {announcements.popup.title}
+                      </div>
+                      <div className="text-white/60 text-xs">Please read before continuing</div>
+                    </div>
+                  </div>
+                </div>
+                {/* Popup body */}
+                <div className="px-6 py-5" style={{ maxHeight: '50vh', overflowY: 'auto' }}>
+                  <div className="text-sm whitespace-pre-wrap" style={{ color: T.inkSoft, lineHeight: 1.75 }}>
+                    {announcements.popup.body}
+                  </div>
+                </div>
+                {/* Popup dismiss */}
+                <div className="px-6 py-4 border-t" style={{ borderColor: T.borderLight, backgroundColor: T.bg }}>
+                  <button onClick={() => setPopupDismissed(true)}
+                    className="w-full py-3.5 rounded-xl font-bold text-white text-sm press"
+                    style={{ background: 'linear-gradient(135deg, #990000 0%, #5C0000 100%)', boxShadow: '0 4px 12px rgba(153,0,0,0.3)' }}>
+                    I've Read This — Continue to Site
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <SearchOverlay isOpen={searchOpen} onClose={() => setSearchOpen(false)} go={go} />
           <HelpChatBot />
